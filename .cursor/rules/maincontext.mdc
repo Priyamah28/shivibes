@@ -1,0 +1,11 @@
+---
+description: Always apply shared prompt context from maincontext.md
+alwaysApply: true
+---
+
+# Main Context Rule
+
+Before responding, read `maincontext.md` from the project root and follow it as the primary project-specific context.
+
+If `maincontext.md` is empty, proceed normally.
+
