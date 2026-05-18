@@ -2,34 +2,77 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
+use App\Services\HomePageService;
+use App\Services\ProductQueryService;
+use Illuminate\Http\Request;
 
 class StorefrontController extends Controller
 {
+    public function __construct(
+        private HomePageService $homePage,
+        private ProductQueryService $productQuery,
+    ) {}
+
     public function home()
     {
-        $products = Product::where('is_active', true)->latest()->get();
-
-        return view('store.home', [
-            'newArrivals' => $products->take(8),
-            'bestSellers' => $products->sortByDesc('stock')->take(8)->values(),
-            'featuredProducts' => $products->take(4),
-        ]);
+        return view('store.home', $this->homePage->data());
     }
 
-    public function products()
+    public function products(Request $request)
     {
         return view('store.products.index', [
-            'products' => Product::where('is_active', true)->latest()->get(),
+            'products' => $this->productQuery->listing($request),
+            'filters' => $this->productQuery->filters(),
         ]);
     }
 
-    public function showProduct(string $slug)
+    public function showProduct(Request $request, string $slug)
     {
-        $product = Product::where('slug', $slug)->where('is_active', true)->first();
+        
+        $product = Product::with(['categories', 'images', 'variants', 'reviews'])
+            ->where('slug', $slug)
+            ->active()
+            ->firstOrFail();
 
-        abort_unless($product, 404);
+        $this->trackRecentlyViewed($request, $product->id);
 
-        return view('store.products.show', ['product' => $product]);
+        $related = Product::active()
+            ->where('id', '!=', $product->id)
+            ->when($product->categories->isNotEmpty(), function ($q) use ($product) {
+                $q->whereHas('categories', fn ($c) => $c->whereIn('categories.id', $product->categories->pluck('id')));
+            })
+            ->take(4)
+            ->get();
+
+        $recentlyViewed = $this->recentlyViewedProducts($request, $product->id);
+
+        return view('store.products.show', compact('product', 'related', 'recentlyViewed'));
+    }
+
+    private function trackRecentlyViewed(Request $request, int $productId): void
+    {
+        $viewed = collect($request->session()->get('recently_viewed', []))
+            ->prepend($productId)
+            ->unique()
+            ->take(8)
+            ->values()
+            ->all();
+
+        $request->session()->put('recently_viewed', $viewed);
+    }
+
+    private function recentlyViewedProducts(Request $request, int $excludeId)
+    {
+        $ids = collect($request->session()->get('recently_viewed', []))
+            ->reject(fn ($id) => $id === $excludeId)
+            ->take(4);
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Product::active()->whereIn('id', $ids)->get();
     }
 }

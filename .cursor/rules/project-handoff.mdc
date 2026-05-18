@@ -1,0 +1,183 @@
+---
+description: Developer handoff — implementation status, architecture, and where to continue. Update this file when you ship meaningful changes.
+alwaysApply: true
+---
+
+# Shivibes — Project Handoff (Cursor Memory)
+
+**Last updated:** 2026-05-16 (addresses + orders)  
+**Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD (products, categories, banners, testimonials, FAQs)  
+**Next recommended:** Phase 2 — Razorpay, guest checkout, coupons at checkout, product variants/images in admin
+
+Also read `maincontext.md` for business/product context (herbal skincare, Indian startup, MOHA-style UI).
+
+---
+
+## Golden Rules for All Developers / AI Agents
+
+1. **Do NOT remove or break** existing cart, checkout, auth (Breeze), or admin list routes.
+2. **Enhance incrementally** — no full rewrites.
+3. **Keep backward compatibility** — session cart format, order creation flow unchanged.
+4. **Avoid over-engineering** — small services + Blade components over heavy packages.
+5. **Update this file** when you finish a feature area (add date + bullet under "Changelog").
+
+---
+
+## Current System State
+
+### Working end-to-end
+- User registration/login (Breeze) — customers → home; admins → `/admin` (role-based)
+- Product browse (home, filtered listing, detail)
+- Add to cart → cart page → checkout → order + order items in DB
+- Corporate inquiry form → `corporate_inquiries` table → admin list + status patch
+- Newsletter subscribe
+- Admin dashboard stats (basic)
+
+### Working but limited
+- **Cart drawer** — only for `@auth` users; dispatches `toggle-cart` event; fetches `GET /cart/summary`
+- **Wishlist** — DB table + toggle; no "in wishlist" heart state on product card yet
+- **Reviews** — schema + display on product page if `is_approved`; no public submit form
+- **Variants / gallery** — DB tables exist; admin UI to manage them does not
+- **Coupons** — table exists; not applied in `CheckoutController`
+- **Admin CRUD** — products, categories, banners, testimonials, FAQs (create/edit/delete). Orders & inquiries list-only.
+- **Admin** — product variants/gallery not yet in forms; image upload needs `php artisan storage:link`
+
+### Auth-gated (unchanged from MVP)
+Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see "Login to add" on products.
+
+---
+
+## Phase 1 — What Was Built (2026-05-15)
+
+### Files created/updated (high signal)
+
+**Services**
+- `app/Services/HomePageService.php` — aggregates banners, categories, product collections, testimonials, FAQs
+- `app/Services/ProductQueryService.php` — `listing(Request)` + `filters()` for `/products`
+
+**Controllers**
+- `StorefrontController` — uses services; tracks `recently_viewed` in session
+- `CartController` — added `summary()` JSON for drawer
+- `WishlistController`, `SearchController`, `NewsletterController`
+- `CorporateInquiryController` — extended validation (GST, qty, branding, callback)
+- `Admin/DashboardController` — stats, recent orders, top products query
+
+**Models** (relationships + scopes)
+- `Product` — categories, images, variants, reviews, wishlists; `primaryImage()`, `isOnSale()`, `scopeActive`, `scopeOfType`
+- `Category`, `Wishlist`, `Review`, `ProductImage`, `ProductVariant`, `CorporateInquiry`
+- `Banner`, `Testimonial`, `Faq`, `NewsletterSubscriber`
+
+**Views**
+- `resources/views/layouts/app.blade.php` — full storefront shell
+- `resources/views/components/store/*` — product-card, breadcrumb, section-header, toast
+- `resources/views/store/home.blade.php` + `store/home/sections/*`
+- `resources/views/store/products/index.blade.php`, `show.blade.php`
+- `resources/views/store/partials/cart-drawer.blade.php`
+- `resources/views/store/wishlist.blade.php`, `store/corporate.blade.php` (enhanced)
+- `resources/views/admin/layout.blade.php`, `admin/dashboard.blade.php`
+
+**Frontend**
+- `tailwind.config.js` — `brand`, `gold` colors; serif/sans fonts
+- `resources/css/app.css` — `.btn-primary`, `.section-container`, `.card-product`, etc.
+- `resources/js/app.js` — Alpine stores: `toast`, `searchBox`, `cartDrawer`
+
+**Migrations**
+- Filled: categories, product_images, product_variants, reviews, wishlists, corporate_inquiries, product/order extensions
+- `2026_05_15_120000_create_store_content_tables.php` — banners, testimonials, faqs, newsletter, corporate extra columns
+- **Fix migrations** (important): `140900_fix_product_ecommerce_columns`, `141000_fix_reviews_and_wishlists_tables` — run if product flags/JSON columns missing
+
+**Seeders**
+- `CategorySeeder`, `ProductSeeder` (updateOrCreate), `StoreContentSeeder`
+- `DatabaseSeeder` calls Category → Product → StoreContent → Customer → Order
+
+**Routes** — see `routes/web.php` (newsletter, search, wishlist, cart/summary added; all prior routes kept)
+
+---
+
+## Known Issues / Gotcha
+
+| Issue | Workaround |
+|-------|------------|
+| `php` / `npm` not on PATH (XAMPP) | Use `c:\xampp\php\php.exe artisan ...` |
+| Product columns missing after migrate | Run fix migration `140900_*`; original add-columns migration ran empty |
+| `db:seed` fails on `OrderSeeder` duplicate coupon `GLOW100` | Seed individually or fix OrderSeeder to `updateOrCreate` |
+| Assets not styled | Run `npm run build` |
+| `$navCategories` empty | Run `CategorySeeder`; `AppServiceProvider` checks `Schema::hasTable` |
+| WhatsApp links | Placeholder `919000000000` — search views and replace |
+
+---
+
+## Data Model Quick Reference
+
+**`products.product_type`:** `personal` | `corporate` | `festival` | `combo`  
+**`corporate_inquiries.status`:** `pending` | `in_progress` | `resolved` (admin patch)  
+**Cart session:** `session('cart')[slug] => ['name','price','quantity','image'?]`
+
+**Homepage product queries (HomePageService):**
+- `newArrivals` — latest active
+- `bestSellers` — `is_bestseller`
+- `trending` — `is_trending`
+- `corporateProducts`, `festivalProducts`, `comboProducts`, `personalProducts` — by `product_type`
+
+---
+
+## Where to Continue (Phase 2 Priority Order)
+
+1. **Razorpay** — `CheckoutController@store`; webhook; update `payment_status`
+2. **Guest checkout** — optional auth; guest cart in session (decide if cart stays auth-only)
+3. **Coupon at checkout** — validate against `coupons` table; adjust `discount_amount`
+4. **Admin product CRUD** — forms for product + images + variants + categories
+5. **Admin content CRUD** — banners, FAQs, testimonials (homepage is DB-driven for hero)
+6. **Order tracking UI** — customer-facing page using `tracking_number`, `shipped_at`
+7. **Review submit** — form on product page; admin approve in inquiries-style list
+8. **OrderSeeder** — use `updateOrCreate` to allow full `db:seed` re-runs
+
+### Suggested file targets for Phase 2
+- `app/Http/Controllers/CheckoutController.php`
+- `app/Http/Controllers/Admin/ProductController.php` (add create/store/edit/update)
+- `app/Services/Payment/RazorpayService.php` (new)
+- `resources/views/store/checkout.blade.php` (polish + coupon field)
+- `routes/web.php` (payment callback routes)
+
+---
+
+## Changelog (developers: append here)
+
+### 2026-05-16 — Addresses, orders, tracking
+- `customer_addresses` table + account CRUD + checkout selection
+- `orders.shipping_address` JSON snapshot, tracking fields, `order_status_histories`
+- Customer **My Orders** + admin order detail/update
+- Services: `CheckoutService`, `OrderStatusService`, `AddressService`
+
+### 2026-05-16 — Admin user management
+- Admin **User Accounts** (`/admin/users`): list, filter, create, edit, activate/deactivate
+- `users.is_active`; inactive users blocked at login + logged out via `active` middleware
+
+### 2026-05-16 — Auth roles (admin vs customer)
+- `users.role`: `admin` | `customer` (default customer; not mass-assignable)
+- `admin` middleware on all `/admin/*` routes; customers redirected to home
+- Login/register redirect by role; `AdminUserSeeder` → `admin@shivibes.test` / `password`
+
+### 2026-05-15 — Phase 1b (admin CRUD)
+- Full admin resource routes: products, categories, banners, testimonials, FAQs
+- Product form: gifting type, categories, homepage flags, SEO, image URL/upload
+- Admin layout sidebar grouped like storefront sections
+- Fix: "Add Product" button now links to `admin/products/create`
+
+### 2026-05-15 — Phase 1 (initial premium upgrade)
+- Premium UI/UX, homepage sections, design system
+- Services layer for home + catalog
+- Wishlist, search autocomplete, cart drawer JSON API
+- Extended DB schema + fix migrations + seeders
+- Admin dashboard enhancements
+- README + this handoff file created
+
+---
+
+## How to Update This Memory File
+
+When you complete work:
+1. Add a dated entry under **Changelog**
+2. Move items from **Where to Continue** to **Current System State** if done
+3. Update **Last updated** date at top
+4. Mirror major changes in root `README.md` if user-facing setup changed

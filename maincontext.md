@@ -117,4 +117,4 @@ When generating code, always include:
 
 Use bellow websites for refence 
 https://www.moha.co.in/
-https://www.justherbs.in/
+https://www.justherbs.inn/
