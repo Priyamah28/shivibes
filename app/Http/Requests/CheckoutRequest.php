@@ -10,7 +10,8 @@ class CheckoutRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        // Route is already protected by auth + verified.email middleware.
+        return true;
     }
 
     /**

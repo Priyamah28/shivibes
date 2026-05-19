@@ -14,7 +14,11 @@ class OrderPolicy
 
     public function view(User $user, Order $order): bool
     {
-        return $user->isAdmin() || $order->isOwnedBy($user);
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $order->isOwnedBy($user);
     }
 
     public function update(User $user, Order $order): bool

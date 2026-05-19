@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Models\Category;
 use App\Models\CustomerAddress;
+use App\Models\Order;
 use App\Models\Wishlist;
+use App\Policies\CustomerAddressPolicy;
+use App\Policies\OrderPolicy;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
@@ -20,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(CustomerAddress::class, CustomerAddressPolicy::class);
+
         Route::bind('address', fn (string $value) => CustomerAddress::where('user_id', auth()->id())
             ->findOrFail($value));
 

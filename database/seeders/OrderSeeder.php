@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class OrderSeeder extends Seeder
@@ -40,8 +41,13 @@ class OrderSeeder extends Seeder
         $shipping = 60;
         $discount = 100;
 
+        $userId = User::query()
+            ->where('email', $customer->email)
+            ->value('id');
+
         $order = Order::create([
             'order_number' => 'ORD-1001',
+            'user_id' => $userId,
             'customer_id' => $customer->id,
             'status' => 'packed',
             'payment_status' => 'paid',

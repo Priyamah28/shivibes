@@ -142,7 +142,14 @@ class Order extends Model
 
     public function isOwnedBy(User $user): bool
     {
-        return $this->user_id === $user->id;
+        if ($this->user_id !== null) {
+            return (int) $this->user_id === (int) $user->id;
+        }
+
+        $this->loadMissing('customer');
+
+        return $this->customer !== null
+            && strcasecmp($this->customer->email, $user->email) === 0;
     }
 
     /**
