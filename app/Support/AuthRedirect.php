@@ -3,31 +3,17 @@
 namespace App\Support;
 
 use App\Models\User;
-use App\Services\OtpVerificationService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
 
 class AuthRedirect
 {
     /**
+     * Redirect after the user is fully authenticated (OTP already verified when required).
+     *
      * @param  array<string, scalar|null>  $query
      */
     public static function afterAuthentication(User $user, array $query = []): RedirectResponse
     {
-        $otpService = app(OtpVerificationService::class);
-
-        if ($otpService->needsVerification($user)) {
-            try {
-                $otpService->sendOtp($user);
-            } catch (ValidationException) {
-                // Cooldown or rate limit — user may use an existing code.
-            } catch (\Throwable) {
-                // Mail failures must not block login/registration redirect.
-            }
-
-            return redirect()->route('verification.otp');
-        }
-
         $intended = session()->pull('url.intended');
 
         if ($intended && self::userCanAccessUrl($user, $intended)) {

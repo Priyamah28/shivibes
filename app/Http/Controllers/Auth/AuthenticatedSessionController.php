@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Support\AuthRedirect;
+use App\Services\AuthService;
+use App\Services\PendingOtpSessionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,31 +13,31 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
+    public function __construct(
+        private readonly AuthService $authService,
+        private readonly PendingOtpSessionService $pendingOtpSession,
+    ) {}
+
     public function create(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        $user = $request->validateCredentials();
 
-        $request->session()->regenerate();
-
-        return AuthRedirect::afterAuthentication($request->user());
+        return $this->authService->handlePostCredentialLogin(
+            $request,
+            $user,
+            $request->boolean('remember')
+        );
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->pendingOtpSession->clear($request);
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

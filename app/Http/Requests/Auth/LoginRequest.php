@@ -2,10 +2,11 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -34,15 +35,20 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Validate credentials without creating an authenticated session.
+     * OTP must be completed before Auth::login() is called.
      *
      * @throws ValidationException
      */
-    public function authenticate(): void
+    public function validateCredentials(): User
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $user = User::query()
+            ->where('email', $this->string('email')->lower()->toString())
+            ->first();
+
+        if (! $user || ! Hash::check($this->string('password')->toString(), $user->password)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -50,15 +56,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        if (! Auth::user()->isActive()) {
-            Auth::logout();
-
+        if (! $user->isActive()) {
             throw ValidationException::withMessages([
                 'email' => 'This account has been deactivated. Please contact support.',
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        return $user;
     }
 
     /**

@@ -36,15 +36,15 @@ Route::prefix('products')->name('products.')->group(function () {
 });
 
 Route::middleware(['auth', 'active'])->group(function () {
-    Route::get('/dashboard', function () {
-        return redirect(auth()->user()->defaultRedirectUrl());
-    })->name('dashboard');
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     Route::middleware('verified.email')->group(function () {
+        Route::get('/dashboard', function () {
+            return redirect(auth()->user()->defaultRedirectUrl());
+        })->name('dashboard');
+
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
         Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
         Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
         Route::post('/cart/add/{slug}', [CartController::class, 'add'])->name('cart.add');

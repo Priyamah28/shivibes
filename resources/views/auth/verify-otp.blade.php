@@ -38,7 +38,7 @@
                 placeholder="000000"
             />
             <x-input-error :messages="$errors->get('otp')" class="mt-2" />
-            <p class="mt-2 text-xs text-gray-500">Code expires in {{ config('shivibes.otp.expires_minutes', 10) }} minutes.</p>
+            <p class="mt-2 text-xs text-gray-500">Code expires in {{ config('shivibes.otp.expires_minutes', 5) }} minutes.</p>
         </div>
 
         <div>
@@ -56,10 +56,10 @@
             </button>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('verification.otp.cancel') }}">
             @csrf
             <button type="submit" class="text-sm text-gray-500 hover:text-gray-800 underline">
-                Log out
+                Cancel and return to login
             </button>
         </form>
     </div>

@@ -132,8 +132,19 @@ class MailService
 
             if (config('shivibes.mail.use_queue')) {
                 $mailer->queue($mailable);
+                Log::info('Mail queued.', array_merge($context, [
+                    'type' => $type,
+                    'to' => is_array($to) ? implode(',', $to) : $to,
+                    'mailable' => $mailable::class,
+                ]));
             } else {
                 $mailer->send($mailable);
+                Log::info('Mail sent synchronously.', array_merge($context, [
+                    'type' => $type,
+                    'to' => is_array($to) ? implode(',', $to) : $to,
+                    'mailable' => $mailable::class,
+                    'mailer' => config('mail.default'),
+                ]));
             }
 
             return true;

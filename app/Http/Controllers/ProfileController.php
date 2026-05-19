@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Support\AuthRedirect;
+use App\Services\AuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +12,10 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        private readonly AuthService $authService,
+    ) {}
+
     /**
      * Display the user's profile form.
      */
@@ -38,7 +42,14 @@ class ProfileController extends Controller
         $request->user()->save();
 
         if ($emailChanged && $request->user()->isCustomer()) {
-            return AuthRedirect::afterAuthentication($request->user());
+            $user = $request->user()->fresh();
+
+            return $this->authService->beginOtpChallenge(
+                $request,
+                $user,
+                false,
+                \App\Services\PendingOtpSessionService::PURPOSE_EMAIL_CHANGE
+            );
         }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');

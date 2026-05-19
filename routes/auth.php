@@ -31,21 +31,27 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+    // OTP verification — guest only with pending session (no Auth::login before verify)
+    Route::middleware('pending.otp')->group(function () {
+        Route::get('verify-email/otp', [EmailOtpVerificationController::class, 'show'])
+            ->name('verification.otp');
+
+        Route::post('verify-email/otp', [EmailOtpVerificationController::class, 'verify'])
+            ->name('verification.otp.verify');
+
+        Route::post('verify-email/otp/resend', [EmailOtpVerificationController::class, 'resend'])
+            ->middleware('throttle:6,1')
+            ->name('verification.otp.resend');
+
+        Route::post('verify-email/otp/cancel', [EmailOtpVerificationController::class, 'cancel'])
+            ->name('verification.otp.cancel');
+    });
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('verify-email', fn () => redirect()->route('verification.otp'))
+    Route::get('verify-email', fn () => redirect()->route('login'))
         ->name('verification.notice');
-
-    Route::get('verify-email/otp', [EmailOtpVerificationController::class, 'show'])
-        ->name('verification.otp');
-
-    Route::post('verify-email/otp', [EmailOtpVerificationController::class, 'verify'])
-        ->name('verification.otp.verify');
-
-    Route::post('verify-email/otp/resend', [EmailOtpVerificationController::class, 'resend'])
-        ->middleware('throttle:6,1')
-        ->name('verification.otp.resend');
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

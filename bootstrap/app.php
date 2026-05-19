@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'verified.email' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'pending.otp' => \App\Http\Middleware\RequirePendingOtpSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
