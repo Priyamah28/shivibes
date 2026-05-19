@@ -4,16 +4,17 @@ namespace App\Mail;
 
 use App\Mail\Concerns\UsesShivibesMailer;
 use App\Models\User;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OtpMail extends Mailable implements ShouldQueue
+/**
+ * OTP mail must send synchronously (never queued) — codes expire in minutes.
+ */
+class OtpMail extends Mailable
 {
-    use Queueable, SerializesModels, UsesShivibesMailer;
+    use SerializesModels, UsesShivibesMailer;
 
     public function __construct(
         public User $user,

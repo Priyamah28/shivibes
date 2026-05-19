@@ -12,7 +12,7 @@
         ['label' => $product->name],
     ]" />
 
-    <div class="grid gap-10 lg:grid-cols-2" x-data="{ activeImage: 0, images: @js($images) }">
+    <div class="grid gap-10 pb-24 lg:grid-cols-2 lg:pb-0" x-data="{ activeImage: 0, images: @js($images) }">
         {{-- Gallery --}}
         <div>
             <div class="overflow-hidden rounded-2xl border border-brand-100 bg-white">
@@ -69,26 +69,14 @@
                 <p class="mt-1 text-xs text-slate-500">Minimum order quantity: {{ $product->moq }} units</p>
             @endif
 
-            <div class="mt-6 flex flex-wrap gap-3">
-                @auth
-                    @if ($product->inStock())
-                        <form action="{{ route('cart.add', $product->slug) }}" method="POST">
-                            @csrf
-                            <button class="btn-primary">Add to Cart</button>
-                        </form>
-                    @endif
-                    <form action="{{ route('wishlist.toggle', $product->slug) }}" method="POST">
-                        @csrf
-                        <button class="btn-secondary">♡ Wishlist</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="btn-primary">Login to Purchase</a>
-                @endauth
+            <div class="mt-6 flex flex-wrap items-center gap-3">
+                <x-store.product-actions :product="$product" class="gap-3" />
 
                 <a href="https://wa.me/916392086152?text={{ urlencode('Hi, I am interested in ' . $product->name) }}" target="_blank" rel="noopener" class="btn-secondary">WhatsApp</a>
 
                 <button
-                    onclick="navigator.share?.({ title: '{{ $product->name }}', url: window.location.href }) ?? navigator.clipboard.writeText(window.location.href)"
+                    type="button"
+                    @click="navigator.share?.({ title: @js($product->name), url: window.location.href }) ?? navigator.clipboard.writeText(window.location.href).then(() => $store.toast.show('Link copied', 'success'))"
                     class="btn-ghost"
                 >Share</button>
             </div>
@@ -143,4 +131,35 @@
             </div>
         </section>
     @endif
+
+    @auth
+        @if ($product->inStock())
+            @php
+                $stickyInWishlist = in_array($product->slug, $wishlistSlugs ?? [], true);
+            @endphp
+            <div
+                class="fixed bottom-0 left-0 right-0 z-30 border-t border-brand-100 bg-white/95 p-4 shadow-lg backdrop-blur-md lg:hidden"
+                x-data="productActions(@js($product->slug), @js($stickyInWishlist))"
+            >
+                <div class="flex gap-3">
+                    <button
+                        type="button"
+                        @click="toggleWishlist()"
+                        :disabled="wishlistLoading"
+                        class="btn-secondary shrink-0 px-4"
+                        :class="inWishlist ? 'border-rose-300 text-rose-600' : ''"
+                    >♡</button>
+                    <button
+                        type="button"
+                        @click="addToCart()"
+                        :disabled="cartLoading"
+                        class="btn-primary flex-1"
+                    >
+                        <span x-show="!cartLoading">Add to Cart</span>
+                        <span x-show="cartLoading" x-cloak>Adding…</span>
+                    </button>
+                </div>
+            </div>
+        @endif
+    @endauth
 @endsection

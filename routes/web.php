@@ -51,6 +51,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/cart/remove/{slug}', [CartController::class, 'remove'])->name('cart.remove');
 
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+        Route::get('/wishlist/summary', [WishlistController::class, 'summary'])->name('wishlist.summary');
         Route::post('/wishlist/toggle/{slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');

@@ -20,9 +20,14 @@ class MailService
 {
     public function sendOtpMail(User $user, string $otp, int $expiresMinutes): bool
     {
-        return $this->send(new OtpMail($user, $otp, $expiresMinutes), $user->email, 'otp', [
-            'user_id' => $user->id,
-        ]);
+        // OTP is time-sensitive: always send synchronously (same path as password reset).
+        return $this->send(
+            new OtpMail($user, $otp, $expiresMinutes),
+            $user->email,
+            'otp',
+            ['user_id' => $user->id],
+            forceSync: true,
+        );
     }
 
     public function sendWelcomeMail(User $user): bool
@@ -125,12 +130,20 @@ class MailService
      * @param  string|array<int, string>  $to
      * @param  array<string, mixed>  $context
      */
-    protected function send(Mailable $mailable, string|array $to, string $type, array $context = []): bool
-    {
+    protected function send(
+        Mailable $mailable,
+        string|array $to,
+        string $type,
+        array $context = [],
+        bool $forceSync = false,
+    ): bool {
+        $useQueue = ! $forceSync && (bool) config('shivibes.mail.use_queue');
+        $mailDefault = (string) config('mail.default');
+
         try {
             $mailer = Mail::to($to);
 
-            if (config('shivibes.mail.use_queue')) {
+            if ($useQueue) {
                 $mailer->queue($mailable);
                 Log::info('Mail queued.', array_merge($context, [
                     'type' => $type,
@@ -143,7 +156,8 @@ class MailService
                     'type' => $type,
                     'to' => is_array($to) ? implode(',', $to) : $to,
                     'mailable' => $mailable::class,
-                    'mailer' => config('mail.default'),
+                    'mailer' => $mailDefault,
+                    'force_sync' => $forceSync,
                 ]));
             }
 

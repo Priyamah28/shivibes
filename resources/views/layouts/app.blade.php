@@ -11,7 +11,13 @@
     @stack('head')
 </head>
 <body class="bg-brand-50 text-slate-800" x-data>
-    @php $cartCount = collect(session('cart', []))->sum('quantity'); @endphp
+    <script>
+        window.__SHIVIBES = {
+            cartCount: {{ (int) ($cartCount ?? 0) }},
+            wishlistCount: {{ (int) ($wishlistCount ?? 0) }},
+            wishlistSlugs: @json($wishlistSlugs ?? []),
+        };
+    </script>
 
     {{-- Announcement bar --}}
     <div class="bg-brand-900 text-center text-xs text-brand-100 sm:text-sm">
@@ -84,20 +90,28 @@
             {{-- Actions --}}
             <div class="flex items-center gap-2 sm:gap-3">
                 @auth
-                    <a href="{{ route('wishlist.index') }}" class="hidden rounded-full p-2 hover:bg-brand-50 sm:inline-flex" title="Wishlist">
+                    <a href="{{ route('wishlist.index') }}" class="relative hidden rounded-full p-2 hover:bg-brand-50 sm:inline-flex" title="Wishlist">
                         <svg class="h-5 w-5 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+                        <span
+                            x-show="$store.nav.wishlistCount > 0"
+                            x-text="$store.nav.wishlistCount"
+                            class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-xs font-bold text-white"
+                        ></span>
                     </a>
                 @endauth
 
                 @auth
-                    <button @click="$dispatch('toggle-cart')" class="relative rounded-full p-2 hover:bg-brand-50" title="Cart">
+                    <button type="button" @click="$dispatch('toggle-cart')" class="relative rounded-full p-2 hover:bg-brand-50" title="Cart">
                         <svg class="h-6 w-6 text-brand-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 7H7.2" />
                             <circle cx="10" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" />
                         </svg>
-                        @if ($cartCount > 0)
-                            <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 text-xs font-bold text-white">{{ $cartCount }}</span>
-                        @endif
+                        <span
+                            x-show="$store.nav.cartCount > 0"
+                            x-text="$store.nav.cartCount"
+                            x-transition
+                            class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1 text-xs font-bold text-white"
+                        ></span>
                     </button>
                 @else
                     <a href="{{ route('cart.index') }}" class="relative rounded-full p-2 hover:bg-brand-50">

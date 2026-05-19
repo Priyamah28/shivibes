@@ -3,7 +3,11 @@
     x-show="$store.toast.visible"
     x-transition
     class="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border px-5 py-4 shadow-lg"
-    :class="$store.toast.type === 'success' ? 'border-green-200 bg-green-50 text-green-800' : 'border-rose-200 bg-rose-50 text-rose-800'"
+    :class="{
+        'border-green-200 bg-green-50 text-green-800': $store.toast.type === 'success',
+        'border-rose-200 bg-rose-50 text-rose-800': $store.toast.type === 'error',
+        'border-brand-200 bg-brand-50 text-brand-900': $store.toast.type === 'info',
+    }"
     style="display: none;"
 >
     <p class="text-sm font-medium" x-text="$store.toast.message"></p>
