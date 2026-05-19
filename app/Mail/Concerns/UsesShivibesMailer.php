@@ -1,19 +1,21 @@
 <?php
-
 namespace App\Mail\Concerns;
+
+use Illuminate\Mail\Mailables\Address;
 
 trait UsesShivibesMailer
 {
-    protected function shivibesFrom(): array
+    protected function shivibesFrom(): Address
     {
-        return [
-            config('shivibes.mail.noreply_address'),
-            config('shivibes.mail.from_name'),
-        ];
+        return new Address(
+            config('mail.from.address'),
+            config('mail.from.name')
+        );
     }
-
-    protected function supportReplyTo(): array
+	protected function supportReplyTo(): Address
     {
-        return [config('shivibes.mail.support_address')];
+		return new Address(
+		config('shivibes.mail.support_address')
+        );
     }
 }
