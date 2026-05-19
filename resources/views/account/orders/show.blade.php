@@ -278,7 +278,7 @@
                         <p class="mt-1 text-sm text-slate-600">
                             Contact our support team for delivery or payment assistance.
                         </p>
-                        <a href="https://wa.me/919000000000"
+                        <a href="https://wa.me/916392086152
                            target="_blank"
                            rel="noopener"
                            class="mt-4 inline-flex items-center rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700">

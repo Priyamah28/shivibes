@@ -48,12 +48,22 @@ Laravel ecommerce for herbal skincare, personal gifting, corporate gifting, and 
 - Full CRUD: products, categories, banners, testimonials, FAQs, users
 - **Order management** — filter/search, detail page, update status/payment, courier + tracking, internal notes, status history
 
+### Email system (May 2026)
+- Centralized `App\Services\MailService` — all outbound mail with try/catch + logging
+- Branded responsive HTML templates under `resources/views/mail/html/`
+- **OTP email verification** for customers (registration + login if unverified)
+- Order confirmation + status update emails (admin status change triggers customer mail)
+- Corporate inquiry: admin alert (all `ADMIN_NOTIFICATION_EMAILS`) + customer acknowledgement
+- Queue-ready mailables (`MAIL_USE_QUEUE=true` + `php artisan queue:work`)
+
 ### Architecture
 - `App\Services\HomePageService` — homepage data aggregation
 - `App\Services\ProductQueryService` — catalog filters/sort/pagination
 - `App\Services\CheckoutService` — place order + address resolution
-- `App\Services\OrderStatusService` — admin status updates + history log
+- `App\Services\OrderStatusService` — admin status updates + history log + status emails
 - `App\Services\AddressService` — default address handling
+- `App\Services\MailService` — transactional + admin notification mail
+- `App\Services\OtpVerificationService` — OTP generation, rate limits, verification
 - Blade components under `resources/views/components/store/`
 - Homepage partials under `resources/views/store/home/sections/`
 - `AppServiceProvider` shares `$navCategories` with `layouts.app` (guarded if `categories` table missing)
@@ -90,7 +100,7 @@ Laravel ecommerce for herbal skincare, personal gifting, corporate gifting, and 
 - Invoice PDF
 - Return/refund requests
 - Review submission + moderation UI
-- Role/permissions, activity logs, email templates
+- Role/permissions, activity logs
 - Shipping calculator / delivery estimate API
 - Product quick-view modal
 - Save for later (separate from wishlist)
@@ -147,6 +157,50 @@ Open `http://127.0.0.1:8000`
 
 ---
 
+## Mail & SMTP setup
+
+Add to `.env` (see `.env.example`):
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.your-provider.com
+MAIL_PORT=587
+MAIL_USERNAME=your-smtp-user
+MAIL_PASSWORD=your-smtp-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@shivibes.com
+MAIL_FROM_NAME="Shivibes"
+MAIL_SUPPORT_ADDRESS=support@shivibes.com
+ADMIN_NOTIFICATION_EMAILS=support@shivibes.com,owner@shivibes.com
+MAIL_USE_QUEUE=false
+```
+
+**Local development:** use `MAIL_MAILER=log` to write emails to `storage/logs/laravel.log`, or Mailtrap for SMTP testing.
+
+**OTP verification:** new customers must verify email via 6-digit code at `/verify-email/otp` before cart, checkout, wishlist, or account orders. Admins are exempt.
+
+### Queue recommendation (production)
+
+```powershell
+# .env
+MAIL_USE_QUEUE=true
+QUEUE_CONNECTION=database   # or redis
+
+c:\xampp\php\php.exe artisan queue:table
+c:\xampp\php\php.exe artisan migrate
+c:\xampp\php\php.exe artisan queue:work
+```
+
+Mail failures are logged and never block checkout, login, or registration.
+
+### Adding new mail types
+
+1. Create `app/Mail/YourMail.php` (implement `ShouldQueue`)
+2. Add Blade view under `resources/views/mail/html/`
+3. Expose a method on `MailService` that calls `$this->send(...)`
+
+---
+
 ## Routes
 
 | Method | URI | Name | Auth |
@@ -158,7 +212,8 @@ Open `http://127.0.0.1:8000`
 | POST | `/corporate` | `corporate.store` | No |
 | POST | `/newsletter` | `newsletter.store` | No |
 | GET | `/search/suggest` | `search.suggest` | No |
-| GET | `/cart` | `cart.index` | Yes |
+| GET | `/verify-email/otp` | `verification.otp` | Yes (if unverified) |
+| GET | `/cart` | `cart.index` | Yes + verified email |
 | GET | `/cart/summary` | `cart.summary` | Yes (JSON) |
 | POST | `/cart/add/{slug}` | `cart.add` | Yes |
 | POST | `/cart/remove/{slug}` | `cart.remove` | Yes |
@@ -223,7 +278,10 @@ app/
     CorporateInquiryController.php
     Admin/                        # dashboard, products, orders, inquiries
   Models/                         # Product, Category, Banner, etc.
+  Mail/                           # Mailable classes (queue-ready)
   Services/
+    MailService.php
+    OtpVerificationService.php
     HomePageService.php
     ProductQueryService.php
 resources/
@@ -262,6 +320,7 @@ database/seeders/
 ## Configuration Checklist
 
 - [ ] `.env` database credentials
+- [ ] `.env` SMTP / `ADMIN_NOTIFICATION_EMAILS`
 - [ ] `npm run build` after CSS/JS changes
 - [ ] Replace WhatsApp number in views
 - [ ] Register/login to test cart, wishlist, checkout

@@ -20,6 +20,7 @@ use App\Http\Controllers\StorefrontController;
 use App\Http\Controllers\CorporateInquiryController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 
@@ -39,23 +40,29 @@ Route::middleware(['auth', 'active'])->group(function () {
         return redirect(auth()->user()->defaultRedirectUrl());
     })->name('dashboard');
 
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
-    Route::post('/cart/add/{slug}', [CartController::class, 'add'])->name('cart.add');
-    Route::post('/cart/remove/{slug}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist/toggle/{slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::middleware('verified.email')->group(function () {
+        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+        Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
+        Route::post('/cart/add/{slug}', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/remove/{slug}', [CartController::class, 'remove'])->name('cart.remove');
 
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-    Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
+        Route::post('/wishlist/toggle/{slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
-    Route::prefix('account')->name('account.')->group(function () {
-        Route::resource('addresses', AccountAddressController::class)->except(['show']);
-        Route::patch('addresses/{address}/default', [AccountAddressController::class, 'makeDefault'])->name('addresses.default');
+        Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
 
-        Route::get('orders', [AccountOrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}', [AccountOrderController::class, 'show'])->name('orders.show');
+        Route::prefix('account')->name('account.')->group(function () {
+            Route::resource('addresses', AccountAddressController::class)->except(['show']);
+            Route::patch('addresses/{address}/default', [AccountAddressController::class, 'makeDefault'])->name('addresses.default');
+
+            Route::get('orders', [AccountOrderController::class, 'index'])->name('orders.index');
+            Route::get('orders/{order}', [AccountOrderController::class, 'show'])->name('orders.show');
+        });
     });
 
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
@@ -77,9 +84,54 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('users.toggle_active');
     });
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/fix-server', function () {
+
+    $output = [];
+
+    // try {
+    //     Artisan::call('storage:link');
+    //     $output[] = 'Storage linked';
+    // } catch (\Exception $e) {
+    //     $output[] = 'Storage link error: '.$e->getMessage();
+    // }
+
+    try {
+        Artisan::call('optimize:clear');
+        $output[] = 'Optimize cleared';
+    } catch (\Exception $e) {
+        $output[] = 'Optimize clear error: '.$e->getMessage();
+    }
+
+    try {
+        Artisan::call('config:clear');
+        $output[] = 'Config cleared';
+    } catch (\Exception $e) {
+        $output[] = 'Config clear error: '.$e->getMessage();
+    }
+
+    try {
+        Artisan::call('cache:clear');
+        $output[] = 'Cache cleared';
+    } catch (\Exception $e) {
+        $output[] = 'Cache clear error: '.$e->getMessage();
+    }
+
+    try {
+        Artisan::call('view:clear');
+        $output[] = 'View cache cleared';
+    } catch (\Exception $e) {
+        $output[] = 'View clear error: '.$e->getMessage();
+    }
+
+	try {
+	        Artisan::call('route:clear');
+	        $output[] = 'route cache cleared';
+	    } catch (\Exception $e) {
+	        $output[] = 'route clear error: '.$e->getMessage();
+	    }
+
+    return '<pre>' . implode("\n", $output) . '</pre>';
+});
 require __DIR__.'/auth.php';

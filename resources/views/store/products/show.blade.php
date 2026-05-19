@@ -85,7 +85,7 @@
                     <a href="{{ route('login') }}" class="btn-primary">Login to Purchase</a>
                 @endauth
 
-                <a href="https://wa.me/919000000000?text={{ urlencode('Hi, I am interested in ' . $product->name) }}" target="_blank" rel="noopener" class="btn-secondary">WhatsApp</a>
+                <a href="https://wa.me/916392086152?text={{ urlencode('Hi, I am interested in ' . $product->name) }}" target="_blank" rel="noopener" class="btn-secondary">WhatsApp</a>
 
                 <button
                     onclick="navigator.share?.({ title: '{{ $product->name }}', url: window.location.href }) ?? navigator.clipboard.writeText(window.location.href)"

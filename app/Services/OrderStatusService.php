@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class OrderStatusService
 {
+    public function __construct(
+        private readonly MailService $mailService,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -73,7 +77,13 @@ class OrderStatusService
                 ]);
             }
 
-            return $order->fresh(['items.product', 'statusHistories.author', 'user', 'customer']);
+            $fresh = $order->fresh(['items.product', 'statusHistories.author', 'user', 'customer']);
+
+            if ($fresh->status !== $previousStatus) {
+                $this->mailService->sendOrderStatusUpdatedMail($fresh, $previousStatus);
+            }
+
+            return $fresh;
         });
     }
 

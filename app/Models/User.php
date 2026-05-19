@@ -100,4 +100,9 @@ class User extends Authenticatable
         return $this->addresses()->where('is_default', true)->first()
             ?? $this->addresses()->latest()->first();
     }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
 }

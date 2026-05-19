@@ -3,10 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\CorporateInquiry;
+use App\Services\MailService;
 use Illuminate\Http\Request;
 
 class CorporateInquiryController extends Controller
 {
+    public function __construct(
+        private readonly MailService $mailService,
+    ) {}
+
     public function create()
     {
         return view('store.corporate');
@@ -31,7 +36,9 @@ class CorporateInquiryController extends Controller
         $validated['callback_requested'] = $request->boolean('callback_requested');
         $validated['inquiry_type'] = $validated['inquiry_type'] ?? 'corporate';
 
-        CorporateInquiry::create($validated);
+        $inquiry = CorporateInquiry::create($validated);
+
+        $this->mailService->sendCorporateInquiryMail($inquiry);
 
         return redirect()->back()->with('success', 'Your inquiry has been submitted successfully. Our corporate team will contact you within 24–48 hours.');
     }

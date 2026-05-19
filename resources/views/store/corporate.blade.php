@@ -87,7 +87,7 @@
 
                 <div class="flex flex-wrap gap-4">
                     <button type="submit" class="btn-primary">Submit Inquiry</button>
-                    <a href="https://wa.me/919000000000?text=Hi%2C%20I%20need%20corporate%20gifting%20info" target="_blank" class="btn-secondary">WhatsApp Us</a>
+                    <a href="https://wa.me/916392086152?text=Hi%2C%20I%20need%20corporate%20gifting%20info" target="_blank" class="btn-secondary">WhatsApp Us</a>
                 </div>
             </form>
         </div>

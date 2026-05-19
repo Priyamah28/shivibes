@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CheckoutRequest;
 use App\Services\CheckoutService;
+use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -12,6 +13,7 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private readonly CheckoutService $checkoutService,
+        private readonly MailService $mailService,
     ) {}
 
     public function index(Request $request): View|RedirectResponse
@@ -47,6 +49,9 @@ class CheckoutController extends Controller
             $cart,
             $request
         );
+
+        $order->load(['items.product', 'user', 'customer']);
+        $this->mailService->sendOrderPlacedMail($order);
 
         return redirect()
             ->route('account.orders.show', $order)

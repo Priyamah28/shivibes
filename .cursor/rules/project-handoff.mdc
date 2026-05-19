@@ -5,8 +5,8 @@ alwaysApply: true
 
 # Shivibes — Project Handoff (Cursor Memory)
 
-**Last updated:** 2026-05-16 (addresses + orders)  
-**Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD (products, categories, banners, testimonials, FAQs)  
+**Last updated:** 2026-05-18 (email system + OTP verification)  
+**Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD + transactional email system  
 **Next recommended:** Phase 2 — Razorpay, guest checkout, coupons at checkout, product variants/images in admin
 
 Also read `maincontext.md` for business/product context (herbal skincare, Indian startup, MOHA-style UI).
@@ -26,7 +26,9 @@ Also read `maincontext.md` for business/product context (herbal skincare, Indian
 ## Current System State
 
 ### Working end-to-end
-- User registration/login (Breeze) — customers → home; admins → `/admin` (role-based)
+- **Email system** — `MailService`, branded HTML templates, order/corporate/OTP/welcome mails; queue-ready via `MAIL_USE_QUEUE`
+- **OTP email verification** — customers must verify before cart/checkout/account; `/verify-email/otp`
+- User registration/login (Breeze) — customers → home after OTP verify; admins → `/admin` (role-based)
 - Product browse (home, filtered listing, detail)
 - Add to cart → cart page → checkout → order + order items in DB
 - Corporate inquiry form → `corporate_inquiries` table → admin list + status patch
@@ -142,6 +144,15 @@ Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see
 ---
 
 ## Changelog (developers: append here)
+
+### 2026-05-18 — Email system + OTP verification
+- `config/shivibes.php` — admin emails, support/noreply, OTP settings
+- `App\Services\MailService` + mailables under `app/Mail/`
+- Templates: `resources/views/mail/html/` (responsive Shivibes branding)
+- Order placed + status update emails (admin order update triggers customer mail)
+- Corporate inquiry: admin notification + customer acknowledgement
+- OTP flow: `email_verification_otps` table, `OtpVerificationService`, `verified.email` middleware
+- README mail/SMTP/queue section
 
 ### 2026-05-16 — Addresses, orders, tracking
 - `customer_addresses` table + account CRUD + checkout selection
