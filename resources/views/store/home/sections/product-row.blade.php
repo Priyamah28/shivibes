@@ -1,6 +1,6 @@
-<section class="{{ $bg ?? 'bg-white' }} py-14">
+<section class="{{ $bg ?? 'bg-transparent' }} py-16 md:py-20">
     <div class="section-container">
-        <x-store.section-header :title="$title" :subtitle="$subtitle ?? null" :href="route('products.index')" />
+        <x-store.section-header eyebrow="Collection" :title="$title" :subtitle="$subtitle ?? null" :href="route('products.index')" />
         @if ($products->isNotEmpty())
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 @foreach ($products as $product)

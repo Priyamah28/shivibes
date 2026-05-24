@@ -41,6 +41,12 @@ export default {
             boxShadow: {
                 card: '0 4px 24px -4px rgba(33, 61, 51, 0.08)',
                 'card-hover': '0 12px 40px -8px rgba(33, 61, 51, 0.15)',
+                premium: '0 20px 50px -12px rgba(33, 61, 51, 0.18)',
+                glow: '0 0 0 1px rgba(255,255,255,0.08), 0 8px 32px rgba(33, 61, 51, 0.12)',
+            },
+            backgroundImage: {
+                'mesh-light': 'radial-gradient(at 20% 0%, rgba(74, 144, 116, 0.12) 0, transparent 50%), radial-gradient(at 80% 20%, rgba(207, 165, 79, 0.1) 0, transparent 45%), linear-gradient(180deg, #f4f9f6 0%, #ffffff 100%)',
+                'mesh-auth': 'radial-gradient(at 0% 0%, rgba(207, 165, 79, 0.15) 0, transparent 50%), radial-gradient(at 100% 100%, rgba(74, 144, 116, 0.12) 0, transparent 50%)',
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-out',

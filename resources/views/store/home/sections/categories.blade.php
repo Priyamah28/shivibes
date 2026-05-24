@@ -1,14 +1,15 @@
-<section class="bg-white py-14">
+<section class="py-16 md:py-20">
     <div class="section-container">
-        <x-store.section-header title="Shop by Category" subtitle="Face, hair, body, spa and gifting — curated for every ritual." :href="route('products.index')" />
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <x-store.section-header eyebrow="Curated for you" title="Shop by Category" subtitle="Face, hair, body, spa and gifting — rituals for every moment." :href="route('products.index')" />
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($categories ?? [] as $category)
-                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="group relative overflow-hidden rounded-2xl">
-                    <img src="{{ $category->image }}" alt="{{ $category->name }}" class="h-48 w-full object-cover transition duration-500 group-hover:scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-brand-900/80 to-transparent"></div>
-                    <div class="absolute bottom-0 p-5 text-white">
-                        <h3 class="font-serif text-xl font-semibold">{{ $category->name }}</h3>
-                        <p class="mt-1 text-sm text-brand-100">{{ $category->description }}</p>
+                <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="group relative overflow-hidden rounded-2xl shadow-card ring-1 ring-brand-100/50 transition duration-500 hover:-translate-y-1 hover:shadow-premium hover:ring-brand-200/60">
+                    <img src="{{ $category->image }}" alt="{{ $category->name }}" class="h-52 w-full object-cover transition duration-700 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-brand-950/85 via-brand-900/20 to-transparent"></div>
+                    <div class="absolute bottom-0 p-6 text-white">
+                        <h3 class="font-serif text-2xl font-semibold">{{ $category->name }}</h3>
+                        <p class="mt-2 line-clamp-2 text-sm text-brand-100/90">{{ $category->description }}</p>
+                        <span class="mt-3 inline-flex text-xs font-semibold uppercase tracking-wider text-gold-300 opacity-0 transition group-hover:opacity-100">Explore →</span>
                     </div>
                 </a>
             @empty

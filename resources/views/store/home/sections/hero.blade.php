@@ -34,8 +34,8 @@
                         <h1 class="mt-4 font-serif text-4xl font-bold leading-tight md:text-6xl" x-text="slide.title"></h1>
                         <p class="mt-5 text-base text-brand-100 md:text-lg" x-text="slide.subtitle"></p>
                         <div class="mt-8 flex flex-wrap gap-3">
-                            <a :href="slide.url" class="btn-primary bg-gold-500 hover:bg-gold-600" x-text="slide.cta"></a>
-                            <a href="{{ route('products.index', ['type' => 'combo']) }}" class="btn-secondary border-white/40 text-green-500 hover:bg-white/10">Combo Packs</a>
+                            <a :href="slide.url" class="btn-gold" x-text="slide.cta"></a>
+                            <a href="{{ route('products.index', ['type' => 'combo']) }}" class="btn-secondary border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20">Combo Packs</a>
                         </div>
                     </div>
                 </div>

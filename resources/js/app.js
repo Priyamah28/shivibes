@@ -1,11 +1,13 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import { registerAuth } from './auth';
 import { registerCommerce } from './store/commerce';
 
 window.Alpine = Alpine;
 
 document.addEventListener('alpine:init', () => {
+    registerAuth(Alpine);
     registerCommerce(Alpine);
 
     Alpine.store('toast', {

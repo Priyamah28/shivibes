@@ -21,28 +21,40 @@
     </script>
 
     {{-- Announcement bar --}}
-    <div class="bg-brand-900 text-center text-xs text-brand-100 sm:text-sm">
-        <p class="px-4 py-2">
-            Free shipping on orders above ₹999 · Corporate bulk orders —
-            <a href="{{ route('corporate.create') }}" class="font-semibold underline hover:text-white">Get a quote</a>
+    <div class="announcement-bar">
+        <p class="px-4 py-2.5">
+            <span class="text-gold-300">✦</span>
+            Free shipping on orders above ₹999
+            <span class="mx-2 text-brand-400">·</span>
+            Corporate bulk orders —
+            <a href="{{ route('corporate.create') }}" class="font-semibold text-gold-200 underline-offset-2 hover:text-white hover:underline">Get a quote</a>
+            <span class="text-gold-300">✦</span>
         </p>
     </div>
 
     {{-- Sticky header --}}
-    <header class="sticky top-0 z-40 border-b border-brand-100 bg-white/95 backdrop-blur-md" x-data="{ mobileOpen: false }">
+    <header
+        class="sticky top-0 z-40 border-b backdrop-blur-md transition-shadow duration-300"
+        :class="scrolled ? 'border-brand-200/80 bg-white/90 shadow-glow backdrop-blur-xl' : 'border-transparent bg-white/80 backdrop-blur-lg'"
+        x-data="{ mobileOpen: false, scrolled: false }"
+        x-init="scrolled = window.scrollY > 8; window.addEventListener('scroll', () => { scrolled = window.scrollY > 8 }, { passive: true })"
+    >
         <div class="section-container flex items-center justify-between gap-4 py-4">
-            <a href="{{ route('home') }}" class="font-serif text-2xl font-bold tracking-tight text-brand-800 md:text-3xl">Shivibes</a>
+            <a href="{{ route('home') }}" class="group flex items-center gap-2">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-700 to-brand-600 font-serif text-sm font-bold text-white shadow-md ring-2 ring-brand-100 transition group-hover:scale-105">S</span>
+                <span class="font-serif text-2xl font-bold tracking-tight text-brand-900 md:text-3xl">Shivibes</span>
+            </a>
 
             {{-- Desktop nav --}}
-            <nav class="hidden items-center gap-6 text-sm font-medium lg:flex" x-data="{ shopOpen: false }">
-                <a href="{{ route('home') }}" class="hover:text-brand-700">Home</a>
+            <nav class="hidden items-center gap-7 lg:flex" x-data="{ shopOpen: false }">
+                <a href="{{ route('home') }}" class="nav-link">Home</a>
 
                 <div class="relative" @mouseenter="shopOpen = true" @mouseleave="shopOpen = false">
-                    <button class="flex items-center gap-1 hover:text-brand-700">
+                    <button class="nav-link flex items-center gap-1">
                         Shop
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div x-show="shopOpen" x-transition class="absolute left-0 top-full z-50 mt-2 w-[520px] rounded-2xl border border-brand-100 bg-white p-6 shadow-card-hover" style="display:none;">
+                    <div x-show="shopOpen" x-transition class="glass-panel absolute left-0 top-full z-50 mt-3 w-[520px] p-6" style="display:none;">
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-brand-600">Categories</p>
@@ -61,11 +73,11 @@
                     </div>
                 </div>
 
-                <a href="{{ route('corporate.create') }}" class="hover:text-brand-700">Corporate</a>
-                <a href="{{ route('products.index') }}" class="hover:text-brand-700">All Products</a>
+                <a href="{{ route('corporate.create') }}" class="nav-link">Corporate</a>
+                <a href="{{ route('products.index') }}" class="nav-link">All Products</a>
                 @auth
                     @if (auth()->user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" class="hover:text-brand-700">Admin</a>
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link">Admin</a>
                     @endif
                 @endauth
             </nav>
@@ -73,7 +85,8 @@
             {{-- Search --}}
             <div class="hidden flex-1 max-w-md lg:block" x-data="searchBox">
                 <div class="relative">
-                    <input type="search" x-model="query" @input.debounce.300ms="search" placeholder="Search herbal skincare…" class="w-full rounded-full border-brand-200 bg-brand-50 py-2.5 pl-4 pr-10 text-sm focus:border-brand-500 focus:ring-brand-500">
+                    <input type="search" x-model="query" @input.debounce.300ms="search" placeholder="Search herbal skincare…" class="input-field w-full rounded-full border-brand-200/80 bg-white/90 py-2.5 pl-11 pr-4 shadow-sm">
+                    <svg class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <div x-show="open" @click.outside="open = false" class="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-brand-100 bg-white shadow-lg" style="display:none;">
                         <template x-for="item in results" :key="item.slug">
                             <a :href="item.url" class="flex items-center gap-3 border-b border-brand-50 px-4 py-3 hover:bg-brand-50">
@@ -136,7 +149,7 @@
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="btn-ghost hidden sm:inline-flex">Login</a>
-                    <a href="{{ route('register') }}" class="btn-primary hidden px-4 py-2 text-xs sm:inline-flex">Register</a>
+                    <a href="{{ route('register') }}" class="btn-primary hidden shadow-md sm:inline-flex">Register</a>
                 @endauth
 
                 {{-- Mobile menu toggle --}}
@@ -200,7 +213,7 @@
     </main>
 
     {{-- Footer --}}
-    <footer class="mt-16 border-t border-brand-100 bg-white">
+    <footer class="mt-20 border-t border-brand-100/80 bg-gradient-to-b from-white to-brand-50/80">
         <div class="section-container grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-4">
             <div>
                 <p class="font-serif text-2xl font-bold text-brand-800">Shivibes</p>
