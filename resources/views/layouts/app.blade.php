@@ -41,8 +41,11 @@
     >
         <div class="section-container flex items-center justify-between gap-4 py-4">
             <a href="{{ route('home') }}" class="group flex items-center gap-2">
-                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-brand-700 to-brand-600 font-serif text-sm font-bold text-white shadow-md ring-2 ring-brand-100 transition group-hover:scale-105">S</span>
-                <span class="font-serif text-2xl font-bold tracking-tight text-brand-900 md:text-3xl">Shivibes</span>
+                <img
+                    src="{{ file_exists(public_path('images/shivibes-logo.png')) ? asset('images/shivibes-logo.png') : asset('favicon.png') }}"
+                    alt="Shivibes"
+                    class="h-10 w-auto transition group-hover:scale-105 md:h-11"
+                >
             </a>
 
             {{-- Desktop nav --}}

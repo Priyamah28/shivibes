@@ -37,4 +37,12 @@ return [
         'max_resends_per_hour' => (int) env('OTP_MAX_RESENDS_PER_HOUR', 5),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Storefront assets
+    |--------------------------------------------------------------------------
+    */
+
+    'default_product_image' => 'images/product-placeholder.png',
+
 ];

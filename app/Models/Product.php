@@ -151,11 +151,23 @@ class Product extends Model
         return $this->stock > 0;
     }
 
+    public static function defaultImageUrl(): string
+    {
+        $path = config('shivibes.default_product_image', 'images/product-placeholder.png');
+
+        return asset($path);
+    }
+
     public function primaryImage(): string
     {
-        return $this->image
+        $image = $this->image
             ?? $this->images()->where('is_primary', true)->value('image_path')
-            ?? $this->images()->value('image_path')
-            ?? 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80';
+            ?? $this->images()->value('image_path');
+
+        if (empty($image)) {
+            return self::defaultImageUrl();
+        }
+
+        return str_starts_with($image, 'http') ? $image : asset(ltrim($image, '/'));
     }
 }

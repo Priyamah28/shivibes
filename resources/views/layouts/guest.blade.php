@@ -1,12 +1,15 @@
 @php
     $heroImages = [
-        'login' => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1400&q=85',
-        'register' => 'https://images.unsplash.com/photo-1596755389378-c31d21fd4c72?auto=format&fit=crop&w=1400&q=85',
-        'verify' => 'https://images.unsplash.com/photo-1612817288484-6f916006741a?auto=format&fit=crop&w=1400&q=85',
-        'password' => 'https://images.unsplash.com/photo-1571875257727-256c39da42af?auto=format&fit=crop&w=1400&q=85',
-        'default' => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=1400&q=85',
+        'login' => asset('images/auth/hero-login.svg'),
+        'register' => asset('images/auth/hero-register.svg'),
+        'verify' => asset('images/auth/hero-verify.svg'),
+        'password' => asset('images/auth/hero-password.svg'),
+        'default' => asset('images/auth/hero-default.svg'),
     ];
     $heroImage = $heroImages[$variant] ?? $heroImages['default'];
+    $logoPath = file_exists(public_path('images/shivibes-logo.png'))
+        ? asset('images/shivibes-logo.png')
+        : asset('favicon.png');
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -26,9 +29,8 @@
             <div class="absolute inset-0 bg-gradient-to-br from-brand-950/92 via-brand-900/80 to-brand-800/70"></div>
             <div class="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(207,165,79,0.25),transparent_45%)]"></div>
             <div class="relative z-10 flex w-full flex-col justify-between p-10 xl:p-14">
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-2">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 font-serif text-lg font-bold text-gold-200 ring-1 ring-white/20">S</span>
-                    <span class="font-serif text-3xl font-bold text-white">Shivibes</span>
+                <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
+                    <img src="{{ $logoPath }}" alt="Shivibes" class="h-14 w-auto rounded-lg bg-white/95 p-1.5 shadow-md ring-1 ring-white/20">
                 </a>
                 <div class="max-w-lg animate-fade-in">
                     <p class="section-eyebrow text-gold-200/90">Herbal luxury skincare</p>
@@ -56,7 +58,9 @@
 
             <div class="relative mx-auto w-full max-w-md animate-slide-up">
                 <div class="mb-8 lg:hidden">
-                    <a href="{{ route('home') }}" class="font-serif text-2xl font-bold text-brand-800">Shivibes</a>
+                    <a href="{{ route('home') }}" class="inline-block">
+                        <img src="{{ $logoPath }}" alt="Shivibes" class="h-12 w-auto">
+                    </a>
                     <h1 class="mt-3 font-serif text-2xl font-semibold text-slate-900">{{ $title }}</h1>
                     @if ($subtitle)
                         <p class="mt-2 text-sm leading-relaxed text-slate-600">{{ $subtitle }}</p>

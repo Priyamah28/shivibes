@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#213d33"/>
+      <stop offset="50%" stop-color="#2f5c4a"/>
+      <stop offset="100%" stop-color="#1a3d32"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="70%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="#ead9ae" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ead9ae" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leaf" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4a9074"/>
+      <stop offset="100%" stop-color="#9bc9b5"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1200" fill="url(#bg)"/>
+  <rect width="900" height="1200" fill="url(#glow)"/>
+  <ellipse cx="100" cy="350" rx="200" ry="95" fill="url(#leaf)" opacity="0.15" transform="rotate(-15 100 350)"/>
+  <ellipse cx="800" cy="180" rx="170" ry="80" fill="url(#leaf)" opacity="0.12" transform="rotate(25 800 180)"/>
+  <!-- gift box / welcome -->
+  <rect x="310" y="380" width="280" height="220" rx="20" fill="#ffffff" opacity="0.07"/>
+  <path d="M310 480 H590" stroke="#cfa54f" stroke-width="3" opacity="0.35"/>
+  <path d="M450 380 V600" stroke="#cfa54f" stroke-width="3" opacity="0.35"/>
+  <ellipse cx="450" cy="380" rx="90" ry="28" fill="url(#leaf)" opacity="0.4"/>
+  <!-- fresh leaves cluster -->
+  <path d="M380 650 Q420 580 460 650 Q420 720 380 650Z" fill="url(#leaf)" opacity="0.45"/>
+  <path d="M480 620 Q540 540 600 620 Q540 700 480 620Z" fill="url(#leaf)" opacity="0.35"/>
+  <path d="M520 700 Q560 640 600 700 Q560 760 520 700Z" fill="url(#leaf)" opacity="0.3"/>
+  <circle cx="450" cy="520" r="60" fill="none" stroke="#cfa54f" stroke-width="2" opacity="0.2"/>
+  <circle cx="450" cy="520" r="100" fill="none" stroke="#9bc9b5" stroke-width="1" opacity="0.15"/>
+</svg>

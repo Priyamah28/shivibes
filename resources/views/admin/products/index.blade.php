@@ -57,7 +57,7 @@
                         <tr class="hover:bg-brand-50/50">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3 min-w-[260px]">
-                                    <img src="{{ str_starts_with($product->image ?? '', 'http') ? $product->image : asset(ltrim($product->image ?? '', '/')) }}" alt="" class="h-14 w-14 min-h-[56px] min-w-[56px] rounded-lg object-cover border border-brand-100 bg-white flex-shrink-0" onerror="this.src='https://images.unsplash.com/photo-1556228720-195a672e8a03?w=100&q=80'">
+                                    <img src="{{ str_starts_with($product->image ?? '', 'http') ? $product->image : asset(ltrim($product->image ?? '', '/')) }}" alt="" class="h-14 w-14 min-h-[56px] min-w-[56px] rounded-lg object-cover border border-brand-100 bg-white flex-shrink-0" onerror="this.src='{{ \App\Models\Product::defaultImageUrl() }}'">
                                     <div class="min-w-0">
                                         <!-- <p class="font-medium text-slate-900">{{ $product->name }}</p> -->
                                         <p class="line-clamp-2 text-sm font-medium text-slate-900">{{ $product->name }}</p>

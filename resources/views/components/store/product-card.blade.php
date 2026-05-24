@@ -8,6 +8,7 @@
                 alt="{{ $product->name }}"
                 loading="lazy"
                 class="h-full w-full object-cover transition duration-700 ease-out group-hover/card:scale-110"
+                onerror="this.onerror=null;this.src='{{ \App\Models\Product::defaultImageUrl() }}'"
             >
             <div class="absolute inset-0 bg-gradient-to-t from-brand-950/50 via-transparent to-transparent opacity-80 transition group-hover/card:opacity-90"></div>
         </div>
