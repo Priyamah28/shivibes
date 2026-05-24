@@ -36,8 +36,15 @@
             @endif
             <h1 class="mt-2 font-serif text-3xl font-bold text-slate-900">{{ $product->name }}</h1>
 
-            @if ($product->reviews->isNotEmpty())
-                <p class="mt-2 text-sm text-slate-600">★ {{ $product->averageRating() }} ({{ $product->reviews->count() }} reviews)</p>
+            @if ($reviewStats['count'] > 0)
+                <p class="mt-2 text-sm text-slate-600">
+                    <span class="text-gold-500">★</span> {{ number_format($reviewStats['average'], 1) }}
+                    <a href="#reviews" class="text-brand-700 hover:underline">({{ $reviewStats['count'] }} {{ Str::plural('review', $reviewStats['count']) }})</a>
+                </p>
+            @else
+                <p class="mt-2 text-sm text-slate-500">
+                    <a href="#reviews" class="text-brand-700 hover:underline">Be the first to review</a>
+                </p>
             @endif
 
             <div class="mt-4 flex items-baseline gap-3">
@@ -95,20 +102,7 @@
         </div>
     </div>
 
-    @if ($product->reviews->isNotEmpty())
-        <section class="mt-16">
-            <h2 class="section-title">Customer Reviews</h2>
-            <div class="mt-6 grid gap-4 md:grid-cols-2">
-                @foreach ($product->reviews->take(4) as $review)
-                    <article class="rounded-xl border border-brand-100 bg-white p-5">
-                        <p class="text-gold-500 text-sm">{{ str_repeat('★', $review->rating) }}</p>
-                        <p class="mt-2 text-sm text-slate-600">{{ $review->body }}</p>
-                        <p class="mt-2 text-xs font-semibold text-slate-800">— {{ $review->reviewer_name }}</p>
-                    </article>
-                @endforeach
-            </div>
-        </section>
-    @endif
+    <x-store.product-reviews :product="$product" :review-stats="$reviewStats" :user-review="$userReview" />
 
     @if ($related->isNotEmpty())
         <section class="mt-16">
@@ -149,8 +143,10 @@
                         class="btn-secondary shrink-0 px-4"
                         :class="inWishlist ? 'border-rose-300 text-rose-600' : ''"
                     >♡</button>
+
                     <button
                         type="button"
+                        x-show="$store.nav.cartQty(slug) < 1"
                         @click="addToCart()"
                         :disabled="cartLoading"
                         class="btn-primary flex-1"
@@ -158,6 +154,12 @@
                         <span x-show="!cartLoading">Add to Cart</span>
                         <span x-show="cartLoading" x-cloak>Adding…</span>
                     </button>
+
+                    <div x-show="$store.nav.cartQty(slug) > 0" x-cloak class="qty-stepper qty-stepper--wide flex-1">
+                        <button type="button" @click="decrementCart()" :disabled="cartLoading" class="qty-stepper__btn" aria-label="Decrease quantity">−</button>
+                        <span class="qty-stepper__value" x-text="$store.nav.cartQty(slug)"></span>
+                        <button type="button" @click="addToCart()" :disabled="cartLoading" class="qty-stepper__btn" aria-label="Increase quantity">+</button>
+                    </div>
                 </div>
             </div>
         @endif

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CorporateInquiry;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,7 @@ class DashboardController extends Controller
         $revenueMonth = (float) Order::whereMonth('created_at', now()->month)->sum('total_amount');
         $totalCustomers = User::count();
         $pendingInquiries = CorporateInquiry::where('status', 'pending')->count();
+        $pendingReviews = Review::pending()->count();
 
         $recentOrders = Order::with('customer')->latest()->take(5)->get();
 
@@ -40,6 +42,7 @@ class DashboardController extends Controller
                 'revenue_month' => $revenueMonth,
                 'customers' => $totalCustomers,
                 'pending_inquiries' => $pendingInquiries,
+                'pending_reviews' => $pendingReviews,
             ],
             'recentOrders' => $recentOrders,
             'topProducts' => $topProducts,

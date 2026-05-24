@@ -31,7 +31,11 @@ class AppServiceProvider extends ServiceProvider
             ->findOrFail($value));
 
         View::composer('layouts.app', function ($view) {
-            $cartCount = (int) collect(session('cart', []))->sum('quantity');
+            $sessionCart = session('cart', []);
+            $cartCount = (int) collect($sessionCart)->sum('quantity');
+            $cartQuantities = collect($sessionCart)
+                ->mapWithKeys(fn (array $item, string $slug) => [$slug => (int) $item['quantity']])
+                ->all();
             $wishlistCount = 0;
             $wishlistSlugs = [];
 
@@ -46,6 +50,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with([
                 'cartCount' => $cartCount,
+                'cartQuantities' => $cartQuantities,
                 'wishlistCount' => $wishlistCount,
                 'wishlistSlugs' => $wishlistSlugs,
             ]);

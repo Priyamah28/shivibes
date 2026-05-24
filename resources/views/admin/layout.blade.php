@@ -10,13 +10,13 @@
 </head>
 <body class="bg-brand-50 text-slate-800">
     <div class="min-h-screen lg:flex">
-        <aside class="w-full border-b border-brand-800 bg-brand-900 text-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:border-b-0 lg:border-r">
-            <div class="p-5">
+        <aside class="flex w-full flex-col border-b border-brand-800 bg-brand-900 text-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:overflow-hidden lg:border-b-0 lg:border-r">
+            <div class="shrink-0 p-5">
                 <a href="{{ route('admin.dashboard') }}" class="font-serif text-xl font-bold text-gold-300">Shivibes Admin</a>
                 <p class="mt-1 text-xs text-brand-200">Store management</p>
             </div>
 
-            <nav class="space-y-6 px-3 pb-6 text-sm lg:px-5">
+            <nav class="min-h-0 flex-1 space-y-6 overflow-y-auto px-3 pb-6 text-sm lg:px-5">
                 <div>
                     <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-brand-300">Overview</p>
                     <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10' }} block rounded-lg px-3 py-2.5">Dashboard</a>
@@ -44,8 +44,8 @@
                     <p class="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-brand-300">Sales</p>
                     <a href="{{ route('admin.orders.index') }}" class="{{ request()->routeIs('admin.orders.*') ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10' }} block rounded-lg px-3 py-2.5">Orders</a>
                     <a href="{{ route('admin.inquiries.index') }}" class="{{ request()->routeIs('admin.inquiries.*') ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10' }} block rounded-lg px-3 py-2.5">Corporate Inquiries</a>
+                    <a href="{{ route('admin.reviews.index') }}" class="{{ request()->routeIs('admin.reviews.*') ? 'bg-white/15 text-white' : 'text-brand-100 hover:bg-white/10' }} block rounded-lg px-3 py-2.5">Product Reviews</a>
                 </div>
-                
             </nav>
         </aside>
 

@@ -64,9 +64,15 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class)->where('is_active', true);
     }
 
+    /** Approved reviews visible on the storefront. */
     public function reviews(): HasMany
     {
-        return $this->hasMany(Review::class)->where('is_approved', true);
+        return $this->hasMany(Review::class)->approved()->latest();
+    }
+
+    public function allReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->latest();
     }
 
     public function wishlists(): HasMany
@@ -90,7 +96,40 @@ class Product extends Model
 
     public function averageRating(): float
     {
+        if ($this->relationLoaded('reviews') && $this->reviews->isNotEmpty()) {
+            return round((float) $this->reviews->avg('rating'), 1);
+        }
+
         return round((float) $this->reviews()->avg('rating'), 1);
+    }
+
+    public function approvedReviewsCount(): int
+    {
+        if ($this->relationLoaded('reviews')) {
+            return $this->reviews->count();
+        }
+
+        return (int) $this->reviews()->count();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function ratingBreakdown(): array
+    {
+        $breakdown = array_fill(1, 5, 0);
+        $reviews = $this->relationLoaded('reviews')
+            ? $this->reviews
+            : $this->reviews()->get(['rating']);
+
+        foreach ($reviews as $review) {
+            $rating = (int) $review->rating;
+            if ($rating >= 1 && $rating <= 5) {
+                $breakdown[$rating]++;
+            }
+        }
+
+        return $breakdown;
     }
 
     public function isOnSale(): bool

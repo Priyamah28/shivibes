@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
 use App\Models\Product;
+use App\Models\Review;
 use App\Services\HomePageService;
 use App\Services\ProductQueryService;
 use Illuminate\Http\Request;
@@ -36,6 +36,20 @@ class StorefrontController extends Controller
             ->active()
             ->firstOrFail();
 
+        $reviewStats = [
+            'count' => $product->approvedReviewsCount(),
+            'average' => $product->averageRating(),
+            'breakdown' => $product->ratingBreakdown(),
+        ];
+
+        $userReview = null;
+        if ($request->user()?->isCustomer()) {
+            $userReview = Review::query()
+                ->where('product_id', $product->id)
+                ->where('user_id', $request->user()->id)
+                ->first();
+        }
+
         $this->trackRecentlyViewed($request, $product->id);
 
         $related = Product::active()
@@ -48,7 +62,7 @@ class StorefrontController extends Controller
 
         $recentlyViewed = $this->recentlyViewedProducts($request, $product->id);
 
-        return view('store.products.show', compact('product', 'related', 'recentlyViewed'));
+        return view('store.products.show', compact('product', 'related', 'recentlyViewed', 'reviewStats', 'userReview'));
     }
 
     private function trackRecentlyViewed(Request $request, int $productId): void

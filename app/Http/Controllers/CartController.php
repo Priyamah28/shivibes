@@ -96,6 +96,36 @@ class CartController extends Controller
         return back()->with('success', 'Product added to cart.');
     }
 
+    public function decrement(Request $request, string $slug): JsonResponse|RedirectResponse
+    {
+        $cart = $this->cartItems($request);
+
+        if (! isset($cart[$slug])) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Item not found in cart.',
+                ], 404);
+            }
+
+            return back()->with('error', 'Item not found in cart.');
+        }
+
+        $cart[$slug]['quantity']--;
+
+        if ($cart[$slug]['quantity'] <= 0) {
+            unset($cart[$slug]);
+        }
+
+        $request->session()->put('cart', $cart);
+
+        if ($request->expectsJson()) {
+            return $this->jsonSuccess($request, 'Cart updated.');
+        }
+
+        return back()->with('success', 'Cart updated.');
+    }
+
     public function remove(Request $request, string $slug): JsonResponse|RedirectResponse
     {
         $cart = $this->cartItems($request);

@@ -61,6 +61,7 @@ document.addEventListener('alpine:init', () => {
                     this.items = e.detail.items ?? this.items;
                     this.count = e.detail.count ?? this.count;
                     this.total = e.detail.total ?? this.total;
+                    Alpine.store('nav').setFromPayload(e.detail);
                 }
             });
         },
@@ -84,7 +85,7 @@ document.addEventListener('alpine:init', () => {
                     this.items = data.items;
                     this.count = data.count;
                     this.total = data.total;
-                    Alpine.store('nav').setCart(data.count);
+                    Alpine.store('nav').setFromPayload(data);
                 }
             } finally {
                 this.loading = false;
@@ -115,7 +116,8 @@ document.addEventListener('alpine:init', () => {
                 this.items = data.items;
                 this.count = data.count;
                 this.total = data.total;
-                Alpine.store('nav').setCart(data.count);
+                Alpine.store('nav').setFromPayload(data);
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: data }));
                 Alpine.store('toast').show(json.message, 'success');
             } catch (e) {
                 Alpine.store('toast').show(e.message || 'Could not remove item', 'error');

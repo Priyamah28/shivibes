@@ -27,19 +27,43 @@
         </button>
 
         @if ($product->inStock())
-            <button
-                type="button"
-                @click="addToCart()"
-                :disabled="cartLoading"
-                :class="{ 'is-loading': cartLoading }"
-                class="{{ $compact ? 'rounded-full bg-brand-700 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-800 disabled:opacity-60' : 'btn-primary' }}"
+            <div x-show="$store.nav.cartQty(slug) < 1" class="flex">
+                <button
+                    type="button"
+                    @click="addToCart()"
+                    :disabled="cartLoading"
+                    :class="{ 'is-loading': cartLoading }"
+                    class="{{ $compact ? 'rounded-full bg-brand-700 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-800 disabled:opacity-60' : 'btn-primary' }}"
+                >
+                    <span x-show="!cartLoading">{{ $compact ? 'Add' : 'Add to Cart' }}</span>
+                    <span x-show="cartLoading" x-cloak class="inline-flex items-center gap-2">
+                        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                        <span class="sr-only">Adding…</span>
+                    </span>
+                </button>
+            </div>
+
+            <div
+                x-show="$store.nav.cartQty(slug) > 0"
+                x-cloak
+                class="qty-stepper {{ $compact ? 'qty-stepper--compact' : '' }}"
             >
-                <span x-show="!cartLoading">{{ $compact ? 'Add' : 'Add to Cart' }}</span>
-                <span x-show="cartLoading" x-cloak class="inline-flex items-center gap-2">
-                    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    <span class="sr-only">Adding…</span>
-                </span>
-            </button>
+                <button
+                    type="button"
+                    @click="decrementCart()"
+                    :disabled="cartLoading"
+                    class="qty-stepper__btn"
+                    aria-label="Decrease quantity"
+                >−</button>
+                <span class="qty-stepper__value" x-text="$store.nav.cartQty(slug)"></span>
+                <button
+                    type="button"
+                    @click="addToCart()"
+                    :disabled="cartLoading"
+                    class="qty-stepper__btn"
+                    aria-label="Increase quantity"
+                >+</button>
+            </div>
         @endif
     @else
         <a href="{{ route('login') }}" class="{{ $compact ? 'rounded-full bg-brand-700 px-4 py-2 text-xs font-semibold text-white' : 'btn-primary' }}">

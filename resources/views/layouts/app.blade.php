@@ -14,6 +14,7 @@
     <script>
         window.__SHIVIBES = {
             cartCount: {{ (int) ($cartCount ?? 0) }},
+            cartQuantities: @json($cartQuantities ?? []),
             wishlistCount: {{ (int) ($wishlistCount ?? 0) }},
             wishlistSlugs: @json($wishlistSlugs ?? []),
         };

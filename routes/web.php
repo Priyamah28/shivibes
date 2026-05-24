@@ -7,8 +7,10 @@ use App\Http\Controllers\Admin\FaqController as AdminFaqController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CorporateInquiryController as AdminCorporateInquiryController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\TestimonialController as AdminTestimonialController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\ProductReviewController;
 use App\Http\Controllers\Account\AddressController as AccountAddressController;
 use App\Http\Controllers\Account\OrderController as AccountOrderController;
 use App\Http\Controllers\CartController;
@@ -32,6 +34,11 @@ Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('searc
 
 Route::prefix('products')->name('products.')->group(function () {
     Route::get('/', [StorefrontController::class, 'products'])->name('index');
+
+    Route::middleware(['auth', 'active', 'verified.email'])->group(function () {
+        Route::post('/{slug}/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
+    });
+
     Route::get('/{slug}', [StorefrontController::class, 'showProduct'])->name('show');
 });
 
@@ -48,6 +55,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
         Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
         Route::post('/cart/add/{slug}', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/decrement/{slug}', [CartController::class, 'decrement'])->name('cart.decrement');
         Route::post('/cart/remove/{slug}', [CartController::class, 'remove'])->name('cart.remove');
 
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
@@ -64,6 +72,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('orders', [AccountOrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{order}', [AccountOrderController::class, 'show'])->name('orders.show');
         });
+
     });
 
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
@@ -80,6 +89,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/orders/{order}', [AdminOrderController::class, 'update'])->name('orders.update');
         Route::get('/inquiries', [AdminCorporateInquiryController::class, 'index'])->name('inquiries.index');
         Route::patch('/inquiries/{inquiry}/status', [AdminCorporateInquiryController::class, 'updateStatus'])->name('inquiries.update_status');
+
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::patch('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+        Route::delete('/reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
 
         Route::resource('users', AdminUserController::class)->except(['show', 'destroy']);
         Route::patch('/users/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('users.toggle_active');

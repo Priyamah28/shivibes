@@ -12,11 +12,19 @@
             ['label' => 'Low Stock Alerts', 'value' => $stats['low_stock'], 'alert' => $stats['low_stock'] > 0],
             ['label' => 'Customers', 'value' => $stats['customers']],
             ['label' => 'Pending Inquiries', 'value' => $stats['pending_inquiries'], 'alert' => $stats['pending_inquiries'] > 0],
+            ['label' => 'Pending Reviews', 'value' => $stats['pending_reviews'], 'alert' => $stats['pending_reviews'] > 0, 'href' => route('admin.reviews.index')],
         ] as $card)
-            <div class="rounded-xl bg-white p-5 shadow-sm {{ !empty($card['alert']) ? 'border-l-4 border-amber-500' : '' }}">
-                <p class="text-sm text-slate-500">{{ $card['label'] }}</p>
-                <p class="mt-2 text-2xl font-bold text-slate-900">{{ $card['value'] }}</p>
-            </div>
+            @if (!empty($card['href']))
+                <a href="{{ $card['href'] }}" class="block rounded-xl bg-white p-5 shadow-sm transition hover:shadow-md {{ !empty($card['alert']) ? 'border-l-4 border-amber-500' : '' }}">
+                    <p class="text-sm text-slate-500">{{ $card['label'] }}</p>
+                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ $card['value'] }}</p>
+                </a>
+            @else
+                <div class="rounded-xl bg-white p-5 shadow-sm {{ !empty($card['alert']) ? 'border-l-4 border-amber-500' : '' }}">
+                    <p class="text-sm text-slate-500">{{ $card['label'] }}</p>
+                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ $card['value'] }}</p>
+                </div>
+            @endif
         @endforeach
     </div>
 
