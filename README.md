@@ -362,7 +362,21 @@ php artisan view:cache
 npm ci && npm run build
 ```
 
-Use `php artisan storage:link` for uploaded product images (future admin uploads).
+**Uploaded images (admin products, banners, categories)**
+
+- URLs are always `/storage/{folder}/...` (e.g. `/storage/products/xyz.jpg`).
+- **Local / standard Laravel:** run `php artisan storage:link` (symlink `public/storage` → `storage/app/public`).
+- **Production with `public_html` docroot (cPanel):** uploads must live under `public_html/storage/`. In `.env`, set a path **inside** PHP `open_basedir` (usually `/home/shivibes/...` — **not** `/domains/shivibes.com/...`):
+
+```env
+PUBLIC_STORAGE_ROOT=/home/shivibes/domains/shivibes.com/public_html/storage
+```
+
+Confirm the folder in cPanel File Manager, then `php artisan config:clear`.
+
+If Laravel and `public_html` are siblings under the same allowed path, you can use `USE_PUBLIC_HTML_STORAGE=true` instead of `PUBLIC_STORAGE_ROOT`.
+
+After deploying, **copy** files from `storage/app/public/products/` to `public_html/storage/products/` for uploads that already went to the wrong folder.
 
 ---
 

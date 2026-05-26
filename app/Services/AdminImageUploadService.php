@@ -13,7 +13,7 @@ class AdminImageUploadService
         $spec = AdminImagePresets::get($preset);
         $folder = $spec['disk_folder'];
 
-        $path = $file->store($folder, 'public');
+        $path = $file->store($folder, 'site_public');
 
         return '/storage/'.$path;
     }

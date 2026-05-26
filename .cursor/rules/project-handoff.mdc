@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Shivibes — Project Handoff (Cursor Memory)
 
-**Last updated:** 2026-05-19 (Razorpay payment gateway) 
+**Last updated:** 2026-05-19 (public_html image uploads) 
 **Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD + email/OTP + Razorpay AJAX checkout + webhooks 
 **Next recommended:** Phase 2 — guest checkout, coupons at checkout, product variants/images in admin
 
@@ -146,10 +146,15 @@ Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see
 
 ## Changelog (developers: append here)
 
+### 2026-05-19 — Admin uploads for `public_html` docroot
+- `filesystems.disks.site_public` — writes to `public_html/storage` when present (or `PUBLIC_STORAGE_ROOT` in `.env`)
+- `AdminImageUploadService` uses `site_public` disk so `/storage/products/...` URLs match web root
+- `storage:link` can also link `public_html/storage` → `storage/app/public` as fallback
+
 ### 2026-05-19 — Security hardening (audit remediation)
 - Removed public `GET /fix-server` route
 - Checkout: DB prices + stock locks via `InventoryService`; stock decrement on COD / Razorpay paid
-- Admin product uploads: Laravel `public` disk + safe filenames; image URL path validation
+- Admin product uploads: `site_public` disk + image spec validation
 - Rate limits: search, newsletter, corporate, checkout routes
 
 ### 2026-05-19 — Razorpay payment gateway
