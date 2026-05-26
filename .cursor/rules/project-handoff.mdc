@@ -5,9 +5,9 @@ alwaysApply: true
 
 # Shivibes — Project Handoff (Cursor Memory)
 
-**Last updated:** 2026-05-18 (email system + OTP verification)  
-**Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD + transactional email system  
-**Next recommended:** Phase 2 — Razorpay, guest checkout, coupons at checkout, product variants/images in admin
+**Last updated:** 2026-05-19 (Razorpay payment gateway) 
+**Phase completed:** Phase 1 storefront UI + Phase 1b Admin CRUD + email/OTP + Razorpay AJAX checkout + webhooks 
+**Next recommended:** Phase 2 — guest checkout, coupons at checkout, product variants/images in admin
 
 Also read `maincontext.md` for business/product context (herbal skincare, Indian startup, MOHA-style UI).
 
@@ -30,7 +30,9 @@ Also read `maincontext.md` for business/product context (herbal skincare, Indian
 - **OTP email verification** — customers must verify before cart/checkout/account; `/verify-email/otp`
 - User registration/login (Breeze) — customers → home after OTP verify; admins → `/admin` (role-based)
 - Product browse (home, filtered listing, detail)
-- Add to cart → cart page → checkout → order + order items in DB
+- Add to cart → cart page → checkout → Razorpay AJAX payment → verify → order paid + cart cleared
+- **Razorpay** — pending order → Razorpay order → modal checkout → server signature verify; webhooks `payment.captured`, `payment.failed`, `refund.processed`
+- Optional **COD** when `CHECKOUT_COD_ENABLED=true`
 - Corporate inquiry form → `corporate_inquiries` table → admin list + status patch
 - Newsletter subscribe
 - Admin dashboard stats (basic)
@@ -105,7 +107,7 @@ Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see
 | `db:seed` fails on `OrderSeeder` duplicate coupon `GLOW100` | Seed individually or fix OrderSeeder to `updateOrCreate` |
 | Assets not styled | Run `npm run build` |
 | `$navCategories` empty | Run `CategorySeeder`; `AppServiceProvider` checks `Schema::hasTable` |
-| WhatsApp links | Placeholder `919000000000` — search views and replace |
+| WhatsApp links | Placeholder `+91 6392086152` — search views and replace |
 
 ---
 
@@ -125,8 +127,7 @@ Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see
 
 ## Where to Continue (Phase 2 Priority Order)
 
-1. **Razorpay** — `CheckoutController@store`; webhook; update `payment_status`
-2. **Guest checkout** — optional auth; guest cart in session (decide if cart stays auth-only)
+1. **Guest checkout** — optional auth; guest cart in session (decide if cart stays auth-only)
 3. **Coupon at checkout** — validate against `coupons` table; adjust `discount_amount`
 4. **Admin product CRUD** — forms for product + images + variants + categories
 5. **Admin content CRUD** — banners, FAQs, testimonials (homepage is DB-driven for hero)
@@ -144,6 +145,12 @@ Cart, checkout, wishlist, cart summary API require `auth` middleware. Guests see
 ---
 
 ## Changelog (developers: append here)
+
+### 2026-05-19 — Razorpay payment gateway
+- `razorpay/razorpay` SDK, `config/razorpay.php`, `RazorpayService`, `OrderPaymentService`
+- AJAX checkout: `POST /checkout` → Razorpay modal → `POST /checkout/verify`
+- Webhook `POST /webhooks/razorpay` (CSRF exempt), `razorpay_webhook_events` idempotency table
+- Order columns: `razorpay_order_id`, `razorpay_payment_id`, `razorpay_signature`, `transaction_meta`, `payment_verified_at`
 
 ### 2026-05-18 — Email system + OTP verification
 - `config/shivibes.php` — admin emails, support/noreply, OTP settings

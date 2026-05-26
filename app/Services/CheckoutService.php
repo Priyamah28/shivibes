@@ -13,6 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class CheckoutService
 {
+    public const PAYMENT_RAZORPAY = 'razorpay';
+
+    public const PAYMENT_COD = 'cod';
+
     public function __construct(
         private readonly OrderStatusService $orderStatusService,
         private readonly AddressService $addressService,
@@ -21,9 +25,41 @@ class CheckoutService
     /**
      * @param  array<string, mixed>  $validated
      */
-    public function placeOrder(User $user, array $validated, array $cart, Request $request): Order
+    public function createPendingOrder(User $user, array $validated, array $cart, string $paymentMethod = self::PAYMENT_RAZORPAY): Order
     {
-        return DB::transaction(function () use ($user, $validated, $cart, $request) {
+        return $this->buildOrder($user, $validated, $cart, $paymentMethod, clearCart: false);
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public function placeCodOrder(User $user, array $validated, array $cart, Request $request): Order
+    {
+        return $this->buildOrder($user, $validated, $cart, self::PAYMENT_COD, clearCart: true, request: $request);
+    }
+
+    public function attachRazorpayOrder(Order $order, string $razorpayOrderId, array $meta = []): Order
+    {
+        $order->update([
+            'razorpay_order_id' => $razorpayOrderId,
+            'transaction_meta' => array_merge($order->transaction_meta ?? [], $meta),
+        ]);
+
+        return $order->fresh();
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    private function buildOrder(
+        User $user,
+        array $validated,
+        array $cart,
+        string $paymentMethod,
+        bool $clearCart,
+        ?Request $request = null,
+    ): Order {
+        return DB::transaction(function () use ($user, $validated, $cart, $paymentMethod, $clearCart, $request) {
             $address = $this->resolveAddress($user, $validated);
 
             $subtotal = collect($cart)->sum(fn ($item) => $item['price'] * $item['quantity']);
@@ -47,7 +83,7 @@ class CheckoutService
                 'shipping_address' => $address->toSnapshot(),
                 'status' => Order::STATUS_PENDING,
                 'payment_status' => Order::PAYMENT_PENDING,
-                'payment_method' => 'razorpay',
+                'payment_method' => $paymentMethod,
                 'delivery_type' => $validated['delivery_type'],
                 'subtotal' => $subtotal,
                 'discount_amount' => 0,
@@ -73,8 +109,9 @@ class CheckoutService
 
             $this->orderStatusService->recordPlacement($order, $user);
 
-            $request->session()->forget('cart');
-
+            if ($clearCart && $request) {
+                $request->session()->forget('cart');
+            }
             return $order;
         });
     }

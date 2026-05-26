@@ -15,7 +15,7 @@ Laravel ecommerce for herbal skincare, personal gifting, corporate gifting, and 
 | Frontend | Blade, Tailwind CSS 3, Alpine.js 3 |
 | Build | Vite 7 |
 | Auth | Laravel Breeze |
-| Payments | Razorpay *(planned — not integrated)* |
+| Payments | Razorpay (AJAX checkout + webhooks; optional COD via env) |
 | Delivery | India Post (normal), Shiprocket (express) |
 
 **Design reference:** [moha.co.in](https://www.moha.co.in/) — premium Indian gifting / lifestyle aesthetic.
@@ -84,7 +84,9 @@ Laravel ecommerce for herbal skincare, personal gifting, corporate gifting, and 
 | `/account/addresses` | List / add / edit / delete addresses; set default |
 | `/account/orders` | Order history |
 | `/account/orders/{id}` | Order detail, items, address snapshot, tracking, timeline |
-| `/checkout` | Select saved address or enter new; delivery type; place order |
+| `/checkout` | Address + delivery + Razorpay (AJAX, no page reload) or optional COD |
+| `POST /checkout/verify` | Server-side Razorpay signature verification after payment |
+| `POST /webhooks/razorpay` | Razorpay webhooks (payment.captured, payment.failed, refund.processed) |
 
 **Order address snapshot:** `orders.shipping_address` (JSON) is frozen at checkout so later address edits do not change past orders.
 
@@ -92,9 +94,30 @@ Laravel ecommerce for herbal skincare, personal gifting, corporate gifting, and 
 
 ---
 
+## Razorpay setup
+
+Add to `.env` (Test keys from [Razorpay Dashboard](https://dashboard.razorpay.com) → API Keys → **Test mode**):
+
+```env
+RAZORPAY_KEY=rzp_test_xxxx
+RAZORPAY_SECRET=your_test_secret
+RAZORPAY_WEBHOOK_SECRET=whsec_xxxx
+RAZORPAY_MODE=test
+CHECKOUT_COD_ENABLED=false
+```
+
+**Test payment:** use card `4111 1111 1111 1111`, any future expiry, any CVV, any OTP.
+
+**Webhook (local):** expose your app with [ngrok](https://ngrok.com) and in Razorpay Dashboard → Webhooks add URL `https://YOUR-NGROK/webhooks/razorpay` with events `payment.captured`, `payment.failed`, `refund.processed`. Copy the webhook secret into `RAZORPAY_WEBHOOK_SECRET`.
+
+**Production:** switch Dashboard to Live mode, use live keys, set `RAZORPAY_MODE=live`, register production webhook URL.
+
+Run `composer install` on the server (includes `razorpay/razorpay`).
+
+---
+
 ## Not Yet Implemented (Phase 2+)
 
-- Razorpay live payment
 - Guest checkout
 - Coupon application at checkout (coupons table exists; seeder may duplicate on re-run)
 - Invoice PDF
@@ -313,7 +336,7 @@ database/seeders/
    session('cart')[slug] = ['name', 'price', 'quantity', 'image'?];
    ```
 5. **Product images** — use `$product->primaryImage()` helper.
-6. **WhatsApp** — placeholder `919000000000`; replace in layout, product show, corporate views.
+6. **WhatsApp** — placeholder `+91 6392086152`; replace in layout, product show, corporate views.
 
 ---
 

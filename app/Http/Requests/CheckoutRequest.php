@@ -19,7 +19,14 @@ class CheckoutRequest extends FormRequest
      */
     public function rules(): array
     {
+        $paymentMethods = ['razorpay'];
+
+        if (config('razorpay.cod_enabled')) {
+            $paymentMethods[] = 'cod';
+        }
+
         $rules = [
+            'payment_method' => ['required', Rule::in($paymentMethods)],
             'delivery_type' => ['required', 'in:normal,express'],
             'notes' => ['nullable', 'string', 'max:500'],
             'customer_address_id' => [

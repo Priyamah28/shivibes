@@ -15,6 +15,7 @@ use App\Http\Controllers\Account\AddressController as AccountAddressController;
 use App\Http\Controllers\Account\OrderController as AccountOrderController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\RazorpayWebhookController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
@@ -30,6 +31,7 @@ Route::get('/corporate', [CorporateInquiryController::class, 'create'])->name('c
 Route::post('/corporate', [CorporateInquiryController::class, 'store'])->name('corporate.store');
 
 Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
+Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->name('webhooks.razorpay');
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
 
 Route::prefix('products')->name('products.')->group(function () {
@@ -64,6 +66,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
         Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::post('/checkout/verify', [CheckoutController::class, 'verify'])->name('checkout.verify');
 
         Route::prefix('account')->name('account.')->group(function () {
             Route::resource('addresses', AccountAddressController::class)->except(['show']);
