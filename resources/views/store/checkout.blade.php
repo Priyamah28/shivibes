@@ -12,6 +12,7 @@
         <form
             method="POST"
             action="{{ route('checkout.store') }}"
+            novalidate
             @submit="submit($event)"
             x-data="checkoutPayment(@js([
                 'storeUrl' => route('checkout.store'),
@@ -21,6 +22,7 @@
                 'razorpayConfigured' => $razorpayConfigured,
                 'codEnabled' => $codEnabled,
                 'defaultMode' => $addresses->isNotEmpty() ? 'saved' : 'new',
+                'hasSavedAddresses' => $addresses->isNotEmpty(),
                 'subtotal' => (float) $subtotal,
             ]))"
         >
@@ -42,36 +44,40 @@
                                 </label>
                             </div>
 
-                            <div x-show="mode === 'saved'" class="mt-4 space-y-3">
-                                @foreach ($addresses as $address)
-                                    <label class="flex cursor-pointer gap-3 rounded-xl border p-4 {{ $address->is_default ? 'border-gold-400 bg-gold-50/50' : 'border-brand-100 hover:border-brand-300' }}">
-                                        <input type="radio" name="customer_address_id" value="{{ $address->id }}" @checked($defaultAddress?->id === $address->id) class="mt-1">
-                                        <span class="text-sm">
-                                            <span class="font-medium">{{ $address->full_name }}</span>
-                                            <span class="badge ml-1 bg-brand-100 text-xs">{{ $address->typeLabel() }}</span>
-                                            @if ($address->is_default)<span class="badge ml-1 bg-gold-100 text-xs">Default</span>@endif
-                                            <span class="mt-1 block whitespace-pre-line text-slate-600">{{ $address->formattedLines() }}</span>
-                                            <span class="mt-1 block text-slate-500">{{ $address->phone }}</span>
-                                        </span>
-                                    </label>
-                                @endforeach
-                                <p class="text-xs text-slate-500"><a href="{{ route('account.addresses.index') }}" class="text-brand-700 hover:underline">Manage addresses</a></p>
-                            </div>
+                            <template x-if="mode === 'saved'">
+                                <div class="mt-4 space-y-3">
+                                    @foreach ($addresses as $address)
+                                        <label class="flex cursor-pointer gap-3 rounded-xl border p-4 {{ $address->is_default ? 'border-gold-400 bg-gold-50/50' : 'border-brand-100 hover:border-brand-300' }}">
+                                            <input type="radio" name="customer_address_id" value="{{ $address->id }}" @checked($defaultAddress?->id === $address->id) class="mt-1" required>
+                                            <span class="text-sm">
+                                                <span class="font-medium">{{ $address->full_name }}</span>
+                                                <span class="badge ml-1 bg-brand-100 text-xs">{{ $address->typeLabel() }}</span>
+                                                @if ($address->is_default)<span class="badge ml-1 bg-gold-100 text-xs">Default</span>@endif
+                                                <span class="mt-1 block whitespace-pre-line text-slate-600">{{ $address->formattedLines() }}</span>
+                                                <span class="mt-1 block text-slate-500">{{ $address->phone }}</span>
+                                            </span>
+                                        </label>
+                                    @endforeach
+                                    <p class="text-xs text-slate-500"><a href="{{ route('account.addresses.index') }}" class="text-brand-700 hover:underline">Manage addresses</a></p>
+                                </div>
+                            </template>
                         @endif
 
-                        <div x-show="mode === 'new' || {{ $addresses->isEmpty() ? 'true' : 'false' }}" class="mt-4" x-cloak>
-                            <x-account.address-form :show-default="true" />
-                            <label class="mt-4 flex items-center gap-2 text-sm">
-                                <input type="hidden" name="save_address" value="0">
-                                <input type="checkbox" name="save_address" value="1" checked class="rounded border-brand-300 text-brand-700">
-                                Save this address to my account
-                            </label>
-                            <label class="mt-2 flex items-center gap-2 text-sm">
-                                <input type="hidden" name="set_as_default" value="0">
-                                <input type="checkbox" name="set_as_default" value="1" class="rounded border-brand-300 text-brand-700">
-                                Set as default address
-                            </label>
-                        </div>
+                        <template x-if="mode === 'new' || !hasSavedAddresses">
+                            <div class="mt-4">
+                                <x-account.address-form :show-default="true" />
+                                <label class="mt-4 flex items-center gap-2 text-sm">
+                                    <input type="hidden" name="save_address" value="0">
+                                    <input type="checkbox" name="save_address" value="1" checked class="rounded border-brand-300 text-brand-700">
+                                    Save this address to my account
+                                </label>
+                                <label class="mt-2 flex items-center gap-2 text-sm">
+                                    <input type="hidden" name="set_as_default" value="0">
+                                    <input type="checkbox" name="set_as_default" value="1" class="rounded border-brand-300 text-brand-700">
+                                    Set as default address
+                                </label>
+                            </div>
+                        </template>
                     </section>
 
                     <section class="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">

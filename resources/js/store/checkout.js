@@ -4,6 +4,7 @@
 export function registerCheckout(Alpine) {
     Alpine.data('checkoutPayment', (config) => ({
         mode: config.defaultMode ?? 'saved',
+        hasSavedAddresses: config.hasSavedAddresses ?? false,
         paymentMethod: 'razorpay',
         processing: false,
         payLabel: 'Pay securely with Razorpay',
@@ -28,6 +29,7 @@ export function registerCheckout(Alpine) {
         },
 
         async submit(event) {
+            // Must run first — before browser validation or any async work
             event.preventDefault();
 
             if (this.processing) {
