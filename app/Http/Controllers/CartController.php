@@ -86,7 +86,7 @@ class CartController extends Controller
             ];
         }
 
-        $cart[$slug]['quantity']++;
+        $cart[$slug]['quantity'] = min($cart[$slug]['quantity'] + 1, 99);
         $request->session()->put('cart', $cart);
 
         if ($request->expectsJson()) {

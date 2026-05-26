@@ -13,14 +13,10 @@
         <label class="block text-sm font-medium">Description</label>
         <textarea name="description" rows="3" class="input-field">{{ old('description', $category?->description) }}</textarea>
     </div>
-    <div>
-        <label class="block text-sm font-medium">Image URL</label>
-        <input type="url" name="image" value="{{ old('image', $category?->image) }}" class="input-field">
-    </div>
-    <div>
-        <label class="block text-sm font-medium">Or upload image</label>
-        <input type="file" name="image_file" accept="image/*" class="mt-1 block w-full text-sm">
-    </div>
+    <x-admin.image-upload
+        preset="category"
+        :current-url="$category?->image"
+    />
     <div class="grid grid-cols-2 gap-4">
         <div>
             <label class="block text-sm font-medium">Sort order</label>

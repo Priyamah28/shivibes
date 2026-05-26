@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
 
@@ -104,6 +105,12 @@ class CheckoutController extends Controller
                     : 'Payment successful! Thank you for your order.',
                 'redirect' => route('account.orders.show', $order),
             ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => collect($e->errors())->flatten()->first() ?? 'Insufficient stock for this order.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (Throwable $e) {
             Log::error('Razorpay payment verification failed', [
                 'order_id' => $order->id,
@@ -174,7 +181,19 @@ class CheckoutController extends Controller
      */
     private function handleCodCheckout(Request $request, $user, array $validated, array $cart): RedirectResponse|JsonResponse
     {
-        $order = $this->checkoutService->placeCodOrder($user, $validated, $cart, $request);
+        try {
+            $order = $this->checkoutService->placeCodOrder($user, $validated, $cart, $request);
+        } catch (ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => collect($e->errors())->flatten()->first() ?? 'Please check your cart.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            return redirect()->route('checkout.index')->withErrors($e->errors());
+        }
+
         $order->load(['items.product', 'user', 'customer']);
         $this->mailService->sendOrderPlacedMail($order);
 

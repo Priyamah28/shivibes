@@ -6,10 +6,10 @@ use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
@@ -20,22 +20,25 @@ class CheckoutService
     public function __construct(
         private readonly OrderStatusService $orderStatusService,
         private readonly AddressService $addressService,
+        private readonly InventoryService $inventoryService,
     ) {}
 
     /**
      * @param  array<string, mixed>  $validated
+     * @param  array<string, array<string, mixed>>  $cart
      */
     public function createPendingOrder(User $user, array $validated, array $cart, string $paymentMethod = self::PAYMENT_RAZORPAY): Order
     {
-        return $this->buildOrder($user, $validated, $cart, $paymentMethod, clearCart: false);
+        return $this->buildOrder($user, $validated, $cart, $paymentMethod, clearCart: false, decrementStock: false);
     }
 
     /**
      * @param  array<string, mixed>  $validated
+     * @param  array<string, array<string, mixed>>  $cart
      */
     public function placeCodOrder(User $user, array $validated, array $cart, Request $request): Order
     {
-        return $this->buildOrder($user, $validated, $cart, self::PAYMENT_COD, clearCart: true, request: $request);
+        return $this->buildOrder($user, $validated, $cart, self::PAYMENT_COD, clearCart: true, request: $request, decrementStock: true);
     }
 
     public function attachRazorpayOrder(Order $order, string $razorpayOrderId, array $meta = []): Order
@@ -49,7 +52,31 @@ class CheckoutService
     }
 
     /**
+     * Fulfill inventory when payment is confirmed (Razorpay verify / webhook).
+     *
+     * @throws ValidationException
+     */
+    public function fulfillInventoryForPaidOrder(Order $order): void
+    {
+        if ($this->inventoryService->stockAlreadyDecremented($order)) {
+            return;
+        }
+
+        DB::transaction(function () use ($order) {
+            $locked = Order::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($this->inventoryService->stockAlreadyDecremented($locked)) {
+                return;
+            }
+
+            $this->inventoryService->decrementForOrder($locked);
+            $this->inventoryService->markStockDecremented($locked);
+        });
+    }
+
+    /**
      * @param  array<string, mixed>  $validated
+     * @param  array<string, array<string, mixed>>  $cart
      */
     private function buildOrder(
         User $user,
@@ -57,12 +84,14 @@ class CheckoutService
         array $cart,
         string $paymentMethod,
         bool $clearCart,
+        bool $decrementStock,
         ?Request $request = null,
     ): Order {
-        return DB::transaction(function () use ($user, $validated, $cart, $paymentMethod, $clearCart, $request) {
+        return DB::transaction(function () use ($user, $validated, $cart, $paymentMethod, $clearCart, $decrementStock, $request) {
+            $lines = $this->inventoryService->resolveCartLines($cart);
             $address = $this->resolveAddress($user, $validated);
 
-            $subtotal = collect($cart)->sum(fn ($item) => $item['price'] * $item['quantity']);
+            $subtotal = round((float) $lines->sum('line_total'), 2);
             $shipping = $validated['delivery_type'] === 'express' ? 60 : 0;
 
             $customer = Customer::create([
@@ -92,19 +121,19 @@ class CheckoutService
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            foreach ($cart as $slug => $item) {
-                $product = Product::where('slug', $slug)->first();
-                if (! $product) {
-                    continue;
-                }
-
+            foreach ($lines as $line) {
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['price'],
-                    'line_total' => $item['price'] * $item['quantity'],
+                    'product_id' => $line['product']->id,
+                    'quantity' => $line['quantity'],
+                    'unit_price' => $line['unit_price'],
+                    'line_total' => $line['line_total'],
                 ]);
+            }
+
+            if ($decrementStock) {
+                $this->inventoryService->decrementForOrder($order);
+                $this->inventoryService->markStockDecremented($order);
             }
 
             $this->orderStatusService->recordPlacement($order, $user);
@@ -112,6 +141,7 @@ class CheckoutService
             if ($clearCart && $request) {
                 $request->session()->forget('cart');
             }
+
             return $order;
         });
     }

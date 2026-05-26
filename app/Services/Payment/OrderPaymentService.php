@@ -5,6 +5,7 @@ namespace App\Services\Payment;
 use App\Models\Order;
 use App\Models\RazorpayWebhookEvent;
 use App\Models\User;
+use App\Services\CheckoutService;
 use App\Services\MailService;
 use App\Services\OrderStatusService;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class OrderPaymentService
         private readonly RazorpayService $razorpayService,
         private readonly OrderStatusService $orderStatusService,
         private readonly MailService $mailService,
+        private readonly CheckoutService $checkoutService,
     ) {}
 
     /**
@@ -311,8 +313,8 @@ class OrderPaymentService
             throw new \RuntimeException('Payment amount does not match order total.');
         }
 
-        if (! in_array($status, ['captured', 'authorized'], true)) {
-            throw new \RuntimeException('Payment is not completed.');
+        if ($status !== 'captured') {
+            throw new \RuntimeException('Payment is not captured.');
         }
     }
 
@@ -361,6 +363,8 @@ class OrderPaymentService
         }
 
         $order->save();
+
+        $this->checkoutService->fulfillInventoryForPaidOrder($order);
 
         $this->orderStatusService->update($order, [
             'payment_status' => Order::PAYMENT_PAID,

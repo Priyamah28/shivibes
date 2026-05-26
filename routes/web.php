@@ -23,16 +23,21 @@ use App\Http\Controllers\StorefrontController;
 use App\Http\Controllers\CorporateInquiryController;
 use App\Http\Controllers\WishlistController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', [StorefrontController::class, 'home'])->name('home');
 
 Route::get('/corporate', [CorporateInquiryController::class, 'create'])->name('corporate.create');
-Route::post('/corporate', [CorporateInquiryController::class, 'store'])->name('corporate.store');
+Route::post('/corporate', [CorporateInquiryController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('corporate.store');
 
-Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
+Route::post('/newsletter', [NewsletterController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('newsletter.store');
 Route::post('/webhooks/razorpay', RazorpayWebhookController::class)->name('webhooks.razorpay');
-Route::get('/search/suggest', [SearchController::class, 'suggest'])->name('search.suggest');
+Route::get('/search/suggest', [SearchController::class, 'suggest'])
+    ->middleware('throttle:60,1')
+    ->name('search.suggest');
 
 Route::prefix('products')->name('products.')->group(function () {
     Route::get('/', [StorefrontController::class, 'products'])->name('index');
@@ -64,9 +69,11 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/wishlist/summary', [WishlistController::class, 'summary'])->name('wishlist.summary');
         Route::post('/wishlist/toggle/{slug}', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
-        Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-        Route::post('/checkout/verify', [CheckoutController::class, 'verify'])->name('checkout.verify');
+        Route::middleware('throttle:20,1')->group(function () {
+            Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+            Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+            Route::post('/checkout/verify', [CheckoutController::class, 'verify'])->name('checkout.verify');
+        });
 
         Route::prefix('account')->name('account.')->group(function () {
             Route::resource('addresses', AccountAddressController::class)->except(['show']);
@@ -103,52 +110,4 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 });
 
-Route::get('/fix-server', function () {
-
-    $output = [];
-
-    // try {
-    //     Artisan::call('storage:link');
-    //     $output[] = 'Storage linked';
-    // } catch (\Exception $e) {
-    //     $output[] = 'Storage link error: '.$e->getMessage();
-    // }
-
-    try {
-        Artisan::call('optimize:clear');
-        $output[] = 'Optimize cleared';
-    } catch (\Exception $e) {
-        $output[] = 'Optimize clear error: '.$e->getMessage();
-    }
-
-    try {
-        Artisan::call('config:clear');
-        $output[] = 'Config cleared';
-    } catch (\Exception $e) {
-        $output[] = 'Config clear error: '.$e->getMessage();
-    }
-
-    try {
-        Artisan::call('cache:clear');
-        $output[] = 'Cache cleared';
-    } catch (\Exception $e) {
-        $output[] = 'Cache clear error: '.$e->getMessage();
-    }
-
-    try {
-        Artisan::call('view:clear');
-        $output[] = 'View cache cleared';
-    } catch (\Exception $e) {
-        $output[] = 'View clear error: '.$e->getMessage();
-    }
-
-	try {
-	        Artisan::call('route:clear');
-	        $output[] = 'route cache cleared';
-	    } catch (\Exception $e) {
-	        $output[] = 'route clear error: '.$e->getMessage();
-	    }
-
-    return '<pre>' . implode("\n", $output) . '</pre>';
-});
 require __DIR__.'/auth.php';

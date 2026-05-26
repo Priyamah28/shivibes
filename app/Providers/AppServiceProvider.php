@@ -20,7 +20,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $adminImagesPath = config_path('admin_images.php');
+
+        if (is_readable($adminImagesPath)) {
+            $this->mergeConfigFrom($adminImagesPath, 'admin_images');
+        }
     }
 
     public function boot(): void

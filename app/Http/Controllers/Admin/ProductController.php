@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\AdminImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,6 +19,10 @@ class ProductController extends Controller
         'festival' => 'Festival Collections',
         'combo' => 'Combo Packs',
     ];
+
+    public function __construct(
+        private readonly AdminImageUploadService $images,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -105,10 +110,12 @@ class ProductController extends Controller
 
     private function validated(Request $request, ?Product $product = null): array
     {
-        $validated = $request->validate([
+        $preset = 'product';
+
+        $validated = $request->validate(array_merge([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:products,slug,' . ($product?->id ?? 'NULL'),
-            'sku' => 'nullable|string|max:100|unique:products,sku,' . ($product?->id ?? 'NULL'),
+            'slug' => 'nullable|string|max:255|unique:products,slug,'.($product?->id ?? 'NULL'),
+            'sku' => 'nullable|string|max:100|unique:products,sku,'.($product?->id ?? 'NULL'),
             'description' => 'required|string',
             'ingredients' => 'nullable|string',
             'usage_instructions' => 'nullable|string',
@@ -116,8 +123,6 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'compare_at_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'image' => 'nullable|string|max:500',
-            'image_file' => 'nullable|image|max:4096',
             'product_type' => 'required|in:personal,corporate,festival,combo',
             'moq' => 'nullable|integer|min:1',
             'tags' => 'nullable|string|max:500',
@@ -129,7 +134,7 @@ class ProductController extends Controller
             'is_featured' => 'nullable|boolean',
             'is_bestseller' => 'nullable|boolean',
             'is_trending' => 'nullable|boolean',
-        ]);
+        ], $this->images->urlRules(), $this->images->fileRules($preset)));
 
         $validated['slug'] = Str::slug($validated['slug'] ?: $validated['name']);
         $validated['sku'] = $validated['sku'] ?: strtoupper(Str::slug($validated['slug'], '_'));
@@ -140,18 +145,8 @@ class ProductController extends Controller
         $validated['moq'] = $validated['moq'] ?? 1;
 
         if ($request->hasFile('image_file')) {
-            $image = $request->file('image_file');
-            $filename = time() . '_' . $image->getClientOriginalName();
-            
-            $destination = base_path('public_html/storage/products');
-            if (!file_exists($destination)){ mkdir($destination, 0775, true);}
-            $image->move($destination,$filename);
-            $validated['image'] = '/storage/products/' . $filename;
-
-            //$validated['image'] = '/storage/' . $request->file('image_file')->store('products', 'public');
+            $validated['image'] = $this->images->store($request->file('image_file'), $preset);
         }
-
-        
 
         $validated['tags'] = collect(explode(',', $validated['tags'] ?? ''))
             ->map(fn ($t) => trim($t))

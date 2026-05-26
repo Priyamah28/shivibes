@@ -33,14 +33,11 @@
             <input type="number" name="sort_order" value="{{ old('sort_order', $banner?->sort_order ?? 0) }}" class="input-field">
         </div>
     </div>
-    <div>
-        <label class="block text-sm font-medium">Image URL</label>
-        <input type="url" name="image" value="{{ old('image', $banner?->image) }}" class="input-field">
-    </div>
-    <div>
-        <label class="block text-sm font-medium">Or upload image</label>
-        <input type="file" name="image_file" accept="image/*" class="mt-1 block w-full text-sm">
-    </div>
+    <x-admin.image-upload
+        :dynamic-banner="true"
+        :default-placement="old('placement', $banner?->placement ?? 'home_hero')"
+        :current-url="$banner?->image"
+    />
     <label class="flex items-center gap-2 text-sm">
         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $banner?->is_active ?? true)) class="rounded text-brand-700">
         Active

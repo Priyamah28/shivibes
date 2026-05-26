@@ -63,20 +63,11 @@
 
         
         <section class="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
-            <h2 class="mb-4 font-semibold text-brand-800">Image</h2>
-            @if ($product?->image)
-                <img src="{{ str_starts_with($product->image, 'http') ? $product->image : asset(ltrim($product->image, '/')) }}" alt="" class="mb-3 h-32 w-full rounded-lg object-cover">
-            @endif
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-sm font-medium">Image URL</label>
-                    <input type="url" name="image" value="{{ old('image', $product?->image) }}" placeholder="https://..." class="input-field">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Or upload image</label>
-                    <input type="file" name="image_file" accept="image/*" class="mt-1 block w-full text-sm">
-                </div>
-            </div>
+            <h2 class="mb-4 font-semibold text-brand-800">Product image</h2>
+            <x-admin.image-upload
+                preset="product"
+                :current-url="$product?->image"
+            />
         </section>
     </div>
 

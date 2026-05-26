@@ -4,6 +4,7 @@ import Alpine from 'alpinejs';
 import { registerAuth } from './auth';
 import { registerCommerce } from './store/commerce';
 import { registerCheckout } from './store/checkout';
+import { registerAdminImageUpload } from './admin/images';
 
 window.Alpine = Alpine;
 
@@ -11,6 +12,7 @@ document.addEventListener('alpine:init', () => {
     registerAuth(Alpine);
     registerCommerce(Alpine);
     registerCheckout(Alpine);
+    registerAdminImageUpload(Alpine);
 
     Alpine.store('toast', {
         visible: false,

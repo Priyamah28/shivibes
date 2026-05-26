@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Services\AdminImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -11,6 +12,10 @@ use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
+    public function __construct(
+        private readonly AdminImageUploadService $images,
+    ) {}
+
     public function index(): View
     {
         return view('admin.categories.index', [
@@ -59,30 +64,23 @@ class CategoryController extends Controller
 
     private function validated(Request $request, ?Category $category = null): array
     {
-        $data = $request->validate([
+        $preset = 'category';
+
+        $data = $request->validate(array_merge([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:categories,slug,' . ($category?->id ?? 'NULL'),
+            'slug' => 'nullable|string|max:255|unique:categories,slug,'.($category?->id ?? 'NULL'),
             'description' => 'nullable|string',
-            'image' => 'nullable|string|max:500',
-            'image_file' => 'nullable|image|max:4096',
             'parent_id' => 'nullable|exists:categories,id',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-        ]);
+        ], $this->images->urlRules(), $this->images->fileRules($preset)));
 
         $data['slug'] = Str::slug($data['slug'] ?: $data['name']);
         $data['is_active'] = $request->boolean('is_active');
         $data['sort_order'] = $data['sort_order'] ?? 0;
 
         if ($request->hasFile('image_file')) {
-            $image = $request->file('image_file');
-            $filename = time() . '_' . $image->getClientOriginalName();
-            $destination = base_path('public_html/storage/categories');      
-            if (!file_exists($destination)) {
-                mkdir($destination, 0775, true);
-            }
-         $image->move($destination, $filename);
-            $data['image'] = '/storage/categories/' . $filename;
+            $data['image'] = $this->images->store($request->file('image_file'), $preset);
         }
 
         if ($category && (int) $data['parent_id'] === $category->id) {
